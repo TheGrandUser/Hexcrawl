@@ -1,0 +1,62 @@
+﻿body {
+}
+
+.site-header {
+    /*color: #F2EFDC;*/
+}
+
+.user-status a a:visited {
+    color: orangered;
+}
+
+.user-status a:active a:hover {
+    color: red;
+}
+
+.site-status {
+    margin-top: 10px;
+    /*color: white;*/
+}
+
+.site-footer {
+    background-color: #808080;
+    color: #404040;
+}
+
+.site-footer footer {
+    margin: 10px;   
+}
+
+.site-body {
+    background-color: #f8f7f2;
+    color: #404040;
+}
+
+.site-username-status {
+    list-style-type: none;
+    display: inline;
+}
+
+.site-login {
+    
+}
+
+.home-consumer {
+    /*background-color: #888888;*/
+}
+
+.home-contractor {
+    /*background-color:#888666;*/
+}
+
+.dashboard-btn {
+    margin-top: 15px;
+}
+
+.thumbnail_max_size {
+    max-height: 100px;
+}
+
+.strike {
+  text-decoration: line-through;
+}
