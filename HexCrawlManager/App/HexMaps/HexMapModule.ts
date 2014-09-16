@@ -5,12 +5,6 @@ module HexMaps {
 
     'use strict';
 
-    export interface HaxMapScope extends ng.IScope {
-        edgeToEdge: number;
-        vertexToVertex: number;
-        side: number;
-    }
-
     export interface IHexTileDefinitions {
 
         DefaultHex: HexagonDefinition;
@@ -22,7 +16,8 @@ module HexMaps {
     }
 
     export interface ICameraService {
-        debugOffset: Point;
+        //debugOffset: Point;
+
         position: Point;
         width: number;
         height: number;
@@ -44,17 +39,25 @@ module HexMaps {
         hexMap: HexTileMap;
     }
 
+    export interface HaxMapScope extends ng.IScope {
+        edgeToEdge: number;
+        vertexToVertex: number;
+        side: number;
+
+        camera: ICameraService;
+    }
+
     export class HexMapController {
-        constructor(private $scope: HaxMapScope, hexMapService: IHexMapService) {
+        constructor(private $scope: HaxMapScope, hexMapService: IHexMapService, cameraService: ICameraService) {
 
             $scope.edgeToEdge = HexMaps.HexagonDefinition.EdgeToEdge;
             $scope.vertexToVertex = HexMaps.HexagonDefinition.VertexToVertex;
             $scope.side = HexMaps.HexagonDefinition.SideLength;
 
-
+            $scope.camera = cameraService;
         }
 
-        static $inject = ['$scope', 'hexMapService'];
+        static $inject = ['$scope', 'hexMapService', 'cameraService'];
     }
 
     export function SelectHexMapDirective(
@@ -108,10 +111,10 @@ module HexMaps {
                 element.bind('mousemove', function (event: JQueryMouseEventObject) {
                     if (mouseDrag) {
                         var newMousePos = new Point(event.offsetX, event.offsetY);
-                        var diff = newMousePos.sub(lastMousePos);
+                        var diff = lastMousePos.sub(newMousePos);
 
                         lastMousePos = newMousePos;
-
+                        
                         cameraService.position = cameraService.position.add(diff);
                         hexMapInteractionService.doRender();
                     }
@@ -137,30 +140,33 @@ module HexMaps {
                 var width = canvas.width;
                 var height = canvas.height;
 
+                cameraService.width = width;
+                cameraService.height = height;
+
                 hexMapInteractionService.renderMap = function (map: HexTileMap) {
 
                     console.log("drawing hexes");
                     ctx.clearRect(0, 0, width, height);
 
-                    var cameraOffset = cameraService.position.sub(cameraService.debugOffset);
-
-                    var screenRect = new Rectangle(cameraService.position.X, cameraService.position.Y, cameraService.width, cameraService.height);
+                    var worldRect = new Rectangle(cameraService.position.X, cameraService.position.Y, cameraService.width, cameraService.height);
                     
-                    var hexRect = new HexRectangle(screenRect);
+                    var hexRect = new HexRectangle(worldRect);
                     hexRect.forEachCoord(function (coord: AxialCoord) {
                         var tile = map.hexAt(coord);
                         if (tile) {
-                            tile.draw(ctx, cameraService.debugOffset, hexRect.isInBounds(tile.coord));
+                            tile.draw(ctx, cameraService.position, hexRect.isInBounds(tile.coord));
                         }
                     });
 
                     if (hexMapInteractionService.selectedHex && hexRect.isInBounds(hexMapInteractionService.selectedHex.coord)) {
-                        hexMapInteractionService.selectedHex.drawSelection(ctx, cameraService.debugOffset);
+                        hexMapInteractionService.selectedHex.drawSelection(ctx, cameraService.position);
                     }
 
-                    ctx.lineWidth = 1;
-                    ctx.strokeStyle = "cyan";
-                    ctx.strokeRect(cameraOffset.X, cameraOffset.Y, screenRect.width, screenRect.height);
+                    //var cameraOffset = cameraService.position.sub(cameraService.debugOffset);
+
+                    //ctx.lineWidth = 1;
+                    //ctx.strokeStyle = "cyan";
+                    //ctx.strokeRect(cameraOffset.X, cameraOffset.Y, screenRect.width, screenRect.height);
                 }
 
                 hexMapInteractionService.startRenderLoop();
@@ -200,7 +206,7 @@ module HexMaps {
 
         pos: Point = new Point(0, 0);
 
-        debugOffset: Point;
+        //debugOffset: Point;
 
         get position(): Point { return this.pos; }
         set position(value: Point) {
@@ -209,15 +215,16 @@ module HexMaps {
             var lowerRight = this.hexMapService.hexMap.getLowerRightCoord();
             var worldPoint = lowerRight.toPixel();
 
-            if (this.pos.X < 0) {
-                this.pos.X = 0;
-            } else if (this.pos.X + this.width > worldPoint.X) {
+            if (this.pos.X + this.width > worldPoint.X) {
                 this.pos.X = worldPoint.X - this.width;
+            } else if (this.pos.X < 0) {
+                this.pos.X = 0;
             }
-            if (this.pos.Y < 0) {
-                this.pos.Y = 0;
-            } else if (this.pos.Y + this.height > worldPoint.Y) {
+            
+            if (this.pos.Y + this.height > worldPoint.Y) {
                 this.pos.Y = worldPoint.Y - this.height;
+            } else if (this.pos.Y < 0) {
+                this.pos.Y = 0;
             }
         }
         width: number;
@@ -230,10 +237,10 @@ module HexMaps {
             console.log("Creating cameraService");
             this.hexMapService = hexMapService;
 
-            this.debugOffset = new Point(-HexMaps.getHexWidth(), -HexMaps.getHexHeight());
-            this.width = 480;
-            this.height = 320;
-            this.position = new Point(196, 147)
+            //this.debugOffset = new Point(-HexMaps.getHexWidth(), -HexMaps.getHexHeight());
+            this.width = 800;
+            this.height = 600;
+            this.position = new Point(0, 0)
         }
     }
 
@@ -258,7 +265,7 @@ module HexMaps {
 
         makeSelection(point: Point) {
             console.log("A selection was made at " + point.X + ", " + point.Y);
-            var worldPoint = point.add(this.cameraService.debugOffset);
+            var worldPoint = point.add(this.cameraService.position);
             console.log("      World location at " + worldPoint.X + ", " + worldPoint.Y);
 
             if (this.selectedHex) {
@@ -311,7 +318,7 @@ module HexMaps {
 
             HexMaps.HexagonDefinition.SetupHexStatics(height);
 
-            this.hexMap = new HexTileMap(16, 14, hexTileDefinitions.DefaultHex);
+            this.hexMap = new HexTileMap(80, 40, hexTileDefinitions.DefaultHex);
 
             this.hexMap.setHex(new AxialCoord(2, 1), hexTileDefinitions.GreenTile);
         }
