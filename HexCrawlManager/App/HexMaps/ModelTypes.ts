@@ -219,15 +219,14 @@ module HexMaps {
             //    coord.isSame(this.lowerRight);
         }
 
-        getCoords(): Array<AxialCoord> {
+        forEachCoord(action: (coord: AxialCoord) => void): void {
             // flat topped
-            var coords = [];
 
             if (this.leftEdgeOffsetLeftOne) {
                 var current = this.upperLeft.getNeighbor(4);
                 
                 for (var r = current.r; r < this.lowerLeft.r + 1; r++) {
-                    coords.push(new AxialCoord(current.q, r));
+                    action(new AxialCoord(current.q, r));
                 }
             }
 
@@ -239,7 +238,7 @@ module HexMaps {
                 var lowerR = Math.floor(this.lowerLeft.r - (q - this.lowerLeft.q - lowerAdjust) / 2);
 
                 for (var r = upperR; r < lowerR + 1; r++) {
-                    coords.push(new AxialCoord(q, r));
+                    action(new AxialCoord(q, r));
                 }
             }
 
@@ -247,11 +246,9 @@ module HexMaps {
                 var current = this.upperRight.getNeighbor(0);
                 
                 for (var r = current.r; r < this.lowerRight.r + 1; r++) {
-                    coords.push(new AxialCoord(current.q, r));
+                    action(new AxialCoord(current.q, r));
                 }
             }
-
-            return coords;
         }
     }
 

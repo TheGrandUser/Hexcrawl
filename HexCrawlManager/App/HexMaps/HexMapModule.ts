@@ -1,6 +1,5 @@
 ﻿/// <reference path="../../scripts/typings/angularjs/angular.d.ts" />
 /// <reference path="modeltypes.ts" />
-/// <reference path="calculations.ts" />
 
 module HexMaps {
 
@@ -146,16 +145,14 @@ module HexMaps {
                     var cameraOffset = cameraService.position.sub(cameraService.debugOffset);
 
                     var screenRect = new Rectangle(cameraService.position.X, cameraService.position.Y, cameraService.width, cameraService.height);
-
+                    
                     var hexRect = new HexRectangle(screenRect);
-                    var coords = hexRect.getCoords();
-                    for (var i = 0; i < coords.length; i++) {
-                        var coord = coords[i];
+                    hexRect.forEachCoord(function (coord: AxialCoord) {
                         var tile = map.hexAt(coord);
                         if (tile) {
                             tile.draw(ctx, cameraService.debugOffset, hexRect.isInBounds(tile.coord));
                         }
-                    }
+                    });
 
                     if (hexMapInteractionService.selectedHex && hexRect.isInBounds(hexMapInteractionService.selectedHex.coord)) {
                         hexMapInteractionService.selectedHex.drawSelection(ctx, cameraService.debugOffset);

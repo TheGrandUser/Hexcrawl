@@ -303,10 +303,8 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="App\app.ts" />
-    <TypeScriptCompile Include="App\HexMaps\Calculations.ts" />
     <TypeScriptCompile Include="App\HexMaps\HexMapModule.ts" />
     <TypeScriptCompile Include="App\HexMaps\ModelTypes.ts" />
-    <TypeScriptCompile Include="App\HexMaps\OldHex.ts" />
     <TypeScriptCompile Include="Scripts\typings\angularjs\angular-animate.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\angularjs\angular-cookies.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\angularjs\angular-mocks.d.ts" />
