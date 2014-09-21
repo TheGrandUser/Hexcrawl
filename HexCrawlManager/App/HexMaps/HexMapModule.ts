@@ -1,4 +1,8 @@
 ﻿/// <reference path="../../scripts/typings/angularjs/angular.d.ts" />
+/// <reference path="../../scripts/typings/rx/rx.d.ts" />
+/// <reference path="../../scripts/typings/rx/rx.async.d.ts" />
+/// <reference path="../../scripts/typings/rx/rx.binding.d.ts" />
+/// <reference path="../../scripts/typings/rx/rx.time.d.ts" />
 /// <reference path="modeltypes.ts" />
 
 module HexMaps {
@@ -60,6 +64,11 @@ module HexMaps {
         static $inject = ['$scope', 'hexMapService', 'cameraService'];
     }
 
+    class DragEvent {
+        constructor(public start: Point, public end: Point) {
+        }
+    }
+
     export function SelectHexMapDirective(
         hexMapInteractionService: IHexMapInteractionService,
         cameraService: ICameraService): ng.IDirective {
@@ -70,54 +79,40 @@ module HexMaps {
 
                 console.log("Linking a selectHexMap directive!");
 
-                var offsetLeft = element[0].offsetLeft;
-                var offsetTop = element[0].offsetTop;
-                var mouseDown: Point = new Point(0, 0);
-                var lastMousePos: Point = new Point(0, 0);
+                var eventToPoint = (mouseEvent: JQueryMouseEventObject) => new Point(mouseEvent.offsetX, mouseEvent.offsetY);
+                
+                var mouseDownObs = Rx.Observable.fromEventPattern<JQueryMouseEventObject>(
+                    function (handler: (event: JQueryMouseEventObject) => void) { element.bind("mousedown", handler); },
+                    function (handler: (event: JQueryMouseEventObject) => void) { element.unbind("mousedown"); });
 
-                var mouseDrag = false;
+                var mouseUpObs = Rx.Observable.fromEventPattern<JQueryMouseEventObject>(
+                    function (handler: (event: JQueryMouseEventObject) => void) { element.bind("mouseup", handler); },
+                    function (handler: (event: JQueryMouseEventObject) => void) { element.unbind("mouseup"); });
 
-                element.bind('mousedown', function (event: JQueryMouseEventObject) {
+                var mouseMoveObs = Rx.Observable.fromEventPattern<JQueryMouseEventObject>(
+                    function (handler: (event: JQueryMouseEventObject) => void) { element.bind("mousemove", handler); },
+                    function (handler: (event: JQueryMouseEventObject) => void) { element.unbind("mousemove"); });
 
-                    if (event.button === 0) {
+                var mousePointerObs = mouseMoveObs.select(eventToPoint).throttle(1/15);
 
-                        //var currentTarget: any = event.currentTarget;
+                var drag = mouseDownObs
+                    .where(downEvent => downEvent.button === 0)
+                    .selectMany(downEvent => mousePointerObs
+                        .startWith(eventToPoint(downEvent))
+                        .zip(mousePointerObs, (first, second) => first.sub(second))
+                        .takeUntil(mouseUpObs));
 
-                        //console.log("Mouse click at " + event.clientX + ", " + event.clientY);
-                        //console.log("     offset at " + event.offsetX + ", " + event.offsetY);
-                        //console.log(" target offset " + currentTarget.offsetLeft + ", " + currentTarget.offsetTop);
-                        //console.log("   target size " + currentTarget.width + ", " + currentTarget.height);
-
-                        mouseDown = new Point(event.offsetX, event.offsetY);
-                        lastMousePos = new Point(event.offsetX, event.offsetY);
-                        mouseDrag = true;
-
-                    } else if (event.button === 2) {
-                        event.preventDefault();
-                    }
+                drag.subscribe(delta => {
+                    cameraService.position = cameraService.position.add(delta);
+                    hexMapInteractionService.doRender();
                 });
 
-                element.bind('mouseup', function (event: JQueryMouseEventObject) {
-                    if (event.button === 0) {
-                        if (lastMousePos.X === mouseDown.X || lastMousePos.Y === mouseDown.Y) {
-                            hexMapInteractionService.makeSelection(mouseDown);
-                        }
-                        mouseDrag = false;
-                    } else if (event.button === 2) {
-                        event.preventDefault();
-                    }
-                });
+                var selection = mouseDownObs
+                    .where(downEvent => downEvent.button === 0)
+                    .selectMany(downEvent => mouseUpObs.takeUntil(mouseMoveObs).take(1));
 
-                element.bind('mousemove', function (event: JQueryMouseEventObject) {
-                    if (mouseDrag) {
-                        var newMousePos = new Point(event.offsetX, event.offsetY);
-                        var diff = lastMousePos.sub(newMousePos);
-
-                        lastMousePos = newMousePos;
-                        
-                        cameraService.position = cameraService.position.add(diff);
-                        hexMapInteractionService.doRender();
-                    }
+                selection.subscribe(clickEvent => {
+                    hexMapInteractionService.makeSelection(eventToPoint(clickEvent));
                 });
             }
         };

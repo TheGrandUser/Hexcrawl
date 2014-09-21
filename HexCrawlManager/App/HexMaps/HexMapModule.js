@@ -1,4 +1,8 @@
 ﻿/// <reference path="../../scripts/typings/angularjs/angular.d.ts" />
+/// <reference path="../../scripts/typings/rx/rx.d.ts" />
+/// <reference path="../../scripts/typings/rx/rx.async.d.ts" />
+/// <reference path="../../scripts/typings/rx/rx.binding.d.ts" />
+/// <reference path="../../scripts/typings/rx/rx.time.d.ts" />
 /// <reference path="modeltypes.ts" />
 var HexMaps;
 (function (HexMaps) {
@@ -18,6 +22,14 @@ var HexMaps;
     })();
     HexMaps.HexMapController = HexMapController;
 
+    var DragEvent = (function () {
+        function DragEvent(start, end) {
+            this.start = start;
+            this.end = end;
+        }
+        return DragEvent;
+    })();
+
     function SelectHexMapDirective(hexMapInteractionService, cameraService) {
         console.log("Creating a selectHexMap directive!");
         return {
@@ -25,49 +37,51 @@ var HexMaps;
             link: function (scope, element) {
                 console.log("Linking a selectHexMap directive!");
 
-                var offsetLeft = element[0].offsetLeft;
-                var offsetTop = element[0].offsetTop;
-                var mouseDown = new HexMaps.Point(0, 0);
-                var lastMousePos = new HexMaps.Point(0, 0);
+                var eventToPoint = function (mouseEvent) {
+                    return new HexMaps.Point(mouseEvent.offsetX, mouseEvent.offsetY);
+                };
 
-                var mouseDrag = false;
-
-                element.bind('mousedown', function (event) {
-                    if (event.button === 0) {
-                        //var currentTarget: any = event.currentTarget;
-                        //console.log("Mouse click at " + event.clientX + ", " + event.clientY);
-                        //console.log("     offset at " + event.offsetX + ", " + event.offsetY);
-                        //console.log(" target offset " + currentTarget.offsetLeft + ", " + currentTarget.offsetTop);
-                        //console.log("   target size " + currentTarget.width + ", " + currentTarget.height);
-                        mouseDown = new HexMaps.Point(event.offsetX, event.offsetY);
-                        lastMousePos = new HexMaps.Point(event.offsetX, event.offsetY);
-                        mouseDrag = true;
-                    } else if (event.button === 2) {
-                        event.preventDefault();
-                    }
+                var mouseDownObs = Rx.Observable.fromEventPattern(function (handler) {
+                    element.bind("mousedown", handler);
+                }, function (handler) {
+                    element.unbind("mousedown");
                 });
 
-                element.bind('mouseup', function (event) {
-                    if (event.button === 0) {
-                        if (lastMousePos.X === mouseDown.X || lastMousePos.Y === mouseDown.Y) {
-                            hexMapInteractionService.makeSelection(mouseDown);
-                        }
-                        mouseDrag = false;
-                    } else if (event.button === 2) {
-                        event.preventDefault();
-                    }
+                var mouseUpObs = Rx.Observable.fromEventPattern(function (handler) {
+                    element.bind("mouseup", handler);
+                }, function (handler) {
+                    element.unbind("mouseup");
                 });
 
-                element.bind('mousemove', function (event) {
-                    if (mouseDrag) {
-                        var newMousePos = new HexMaps.Point(event.offsetX, event.offsetY);
-                        var diff = lastMousePos.sub(newMousePos);
+                var mouseMoveObs = Rx.Observable.fromEventPattern(function (handler) {
+                    element.bind("mousemove", handler);
+                }, function (handler) {
+                    element.unbind("mousemove");
+                });
 
-                        lastMousePos = newMousePos;
+                var mousePointerObs = mouseMoveObs.select(eventToPoint).throttle(1 / 15);
 
-                        cameraService.position = cameraService.position.add(diff);
-                        hexMapInteractionService.doRender();
-                    }
+                var drag = mouseDownObs.where(function (downEvent) {
+                    return downEvent.button === 0;
+                }).selectMany(function (downEvent) {
+                    return mousePointerObs.startWith(eventToPoint(downEvent)).zip(mousePointerObs, function (first, second) {
+                        return first.sub(second);
+                    }).takeUntil(mouseUpObs);
+                });
+
+                drag.subscribe(function (delta) {
+                    cameraService.position = cameraService.position.add(delta);
+                    hexMapInteractionService.doRender();
+                });
+
+                var selection = mouseDownObs.where(function (downEvent) {
+                    return downEvent.button === 0;
+                }).selectMany(function (downEvent) {
+                    return mouseUpObs.takeUntil(mouseMoveObs).take(1);
+                });
+
+                selection.subscribe(function (clickEvent) {
+                    hexMapInteractionService.makeSelection(eventToPoint(clickEvent));
                 });
             }
         };

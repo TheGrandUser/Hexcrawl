@@ -1,4 +1,8 @@
-﻿var HexMaps;
+﻿/// <reference path="../../scripts/typings/rx/rx.d.ts" />
+/// <reference path="../../scripts/typings/rx/rx.async.d.ts" />
+/// <reference path="../../scripts/typings/rx/rx.binding.d.ts" />
+/// <reference path="../../scripts/typings/rx/rx.time.d.ts" />
+var HexMaps;
 (function (HexMaps) {
     'use strict';
 
@@ -200,11 +204,6 @@
             this.leftEdgeOffsetLeftOne = upperLeftOffset.X < -HexagonDefinition.SideLength / 2;
             this.lowerEdgeDownFirst = lowerLeftCenter.Y > 0;
             this.rightEdgeOffsetRightOne = upperRightCenter.X > HexagonDefinition.SideLength / 2;
-
-            console.log("upperEdgeDownFirst: " + this.upperEdgeDownFirst);
-            console.log("leftEdgeOffsetLeftOne: " + this.leftEdgeOffsetLeftOne);
-            console.log("bottomEdgeDownFirst: " + this.lowerEdgeDownFirst);
-            console.log("rightEdgeOffsetRightOne: " + this.rightEdgeOffsetRightOne);
         }
         HexRectangle.prototype.isInBounds = function (coord) {
             // flat topped

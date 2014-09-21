@@ -27,6 +27,12 @@ namespace HexCrawlManager
             "~/Scripts/angular.js",
             "~/Scripts/angular-route.js"));
 
+         bundles.Add(new ScriptBundle("~/bundles/rx").Include(
+                     "~/Scripts/rx.js",
+                     "~/Scripts/rx.async.js",
+                     "~/Scripts/rx.binding.js",
+                     "~/Scripts/rx.time.js"));
+
          bundles.Add(new StyleBundle("~/Content/css").Include(
                    "~/Content/bootstrap.css",
                    "~/Content/site.css"));
