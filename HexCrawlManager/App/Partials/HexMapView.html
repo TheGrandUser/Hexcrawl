@@ -1,7 +1,16 @@
 ﻿<div>
     <span>HI! From an angular view!</span>
     <div class="row">
-        <div class="col-md-4"><div id="hexStatus"></div></div>
+        <div class="col-md-4">
+            <div id="hexStatus">
+                Values for Hex: <br />
+                <b>Vertex to Vertex:</b> {{vertexToVertex}}<br />
+                <b>Edge to Edge:</b> {{edgeToEdge}}<br />
+                <b>Side Length, z:</b> {{side}}<br />
+                <b>x:</b> {{flare}}<br />
+                <b>y:</b> {{edgeToEdge/2}}
+            </div>
+        </div>
         <div class="col-md-4"><div id="debugInfo">No hex selected<br />Mouse x: 0<br />Mouse y: 0<br />Coord q 0, r 0</div></div>
         <div class="col-md-4">
             <span>Cam X: {{camera.position.X}}</span><br />
@@ -10,6 +19,6 @@
     </div>
     <div>
         <canvas id="hexCanvas" width="800" height="600" style="background-color: cornflowerblue"
-                data-draw-hex-map data-select-hex-map></canvas>
+                data-hx-draw data-hx-interact></canvas>
     </div>
 </div>

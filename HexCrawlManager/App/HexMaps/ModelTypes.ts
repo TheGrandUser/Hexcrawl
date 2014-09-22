@@ -298,6 +298,7 @@ module HexMaps {
         static VertexToVertex = 91.14378277661477;
         static EdgeToEdge = 91.14378277661477;
         static SideLength = 50.0;
+        static Flare = 5.0;
 
         static FlatTopPoints: Array<Point>;
         static PointyTopPoints: Array<Point>;
@@ -317,11 +318,10 @@ module HexMaps {
 
             var vertexToVertex = 2 * x + z;
 
-            var contentDiv = document.getElementById("hexStatus");
-
             HexagonDefinition.VertexToVertex = vertexToVertex;
             HexagonDefinition.EdgeToEdge = edgeToEdge;
             HexagonDefinition.SideLength = z;
+            HexagonDefinition.Flare = x;
 
             HexagonDefinition.FlatTopPoints = [
                 new HexMaps.Point(-vertexToVertex / 2, 0), // middle left
@@ -330,13 +330,6 @@ module HexMaps {
                 new HexMaps.Point(vertexToVertex / 2, 0), // middle right
                 new HexMaps.Point(z / 2, y), // bottom right
                 new HexMaps.Point(-z / 2, y), // bottom left
-
-                //new HexMaps.Point(0, y), // middle left
-                //new HexMaps.Point(x, 0), // top left
-                //new HexMaps.Point(x + z, 0), // top right
-                //new HexMaps.Point(vertexToVertex, y), // middle right
-                //new HexMaps.Point(x + z, edgeToEdge), // bottom right
-                //new HexMaps.Point(x, edgeToEdge), // bottom left
             ];
 
             HexagonDefinition.PointyTopPoints = [
@@ -347,9 +340,9 @@ module HexMaps {
                 new Point(0, x + z), // bottom left
                 new Point(0, x), // top left
             ];
-
-            contentDiv.innerHTML = "Values for Hex: <br /><b>Vertex to Vertex:</b> " + vertexToVertex + "<br /><b>Edge to Edge: </b>" + edgeToEdge +
-            "<br /><b>Side Length, z:</b> " + z + "<br /><b>x:</b> " + x + "<br /><b>y:</b> " + y;
+            
+            //var contentDiv = document.getElementById("hexStatus");
+            //contentDiv.innerHTML = "Values for Hex: <br /><b>Vertex to Vertex:</b> " + vertexToVertex + "<br /><b>Edge to Edge: </b>" + edgeToEdge + "<br /><b>Side Length, z:</b> " + z + "<br /><b>x:</b> " + x + "<br /><b>y:</b> " + y;
         }
 
         Id: string = null;

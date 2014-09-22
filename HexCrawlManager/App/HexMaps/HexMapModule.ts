@@ -47,6 +47,7 @@ module HexMaps {
         edgeToEdge: number;
         vertexToVertex: number;
         side: number;
+        flare: number;
 
         camera: ICameraService;
     }
@@ -57,6 +58,7 @@ module HexMaps {
             $scope.edgeToEdge = HexMaps.HexagonDefinition.EdgeToEdge;
             $scope.vertexToVertex = HexMaps.HexagonDefinition.VertexToVertex;
             $scope.side = HexMaps.HexagonDefinition.SideLength;
+            $scope.flare = HexMaps.HexagonDefinition.Flare;
 
             $scope.camera = cameraService;
         }
@@ -64,12 +66,7 @@ module HexMaps {
         static $inject = ['$scope', 'hexMapService', 'cameraService'];
     }
 
-    class DragEvent {
-        constructor(public start: Point, public end: Point) {
-        }
-    }
-
-    export function SelectHexMapDirective(
+    export function HexMapInteractDirective(
         hexMapInteractionService: IHexMapInteractionService,
         cameraService: ICameraService): ng.IDirective {
         console.log("Creating a selectHexMap directive!");
@@ -79,31 +76,36 @@ module HexMaps {
 
                 console.log("Linking a selectHexMap directive!");
 
-                var eventToPoint = (mouseEvent: JQueryMouseEventObject) => new Point(mouseEvent.offsetX, mouseEvent.offsetY);
-                
+                var ngEventToPoint = (mouseEvent: JQueryMouseEventObject) => new Point(mouseEvent.offsetX, mouseEvent.offsetY);
+                var eventToPoint = (mouseEvent: MouseEvent) => new Point(mouseEvent.offsetX, mouseEvent.offsetY);
+
                 var mouseDownObs = Rx.Observable.fromEventPattern<JQueryMouseEventObject>(
                     function (handler: (event: JQueryMouseEventObject) => void) { element.bind("mousedown", handler); },
                     function (handler: (event: JQueryMouseEventObject) => void) { element.unbind("mousedown"); });
 
-                var mouseUpObs = Rx.Observable.fromEventPattern<JQueryMouseEventObject>(
-                    function (handler: (event: JQueryMouseEventObject) => void) { element.bind("mouseup", handler); },
-                    function (handler: (event: JQueryMouseEventObject) => void) { element.unbind("mouseup"); });
+                var mouseUpObs = Rx.Observable.fromEvent<MouseEvent>(document, "mouseup");
+                //var mouseUpObs = Rx.Observable.fromEventPattern<JQueryMouseEventObject>(
+                //    function (handler: (event: JQueryMouseEventObject) => void) { element.bind("mouseup", handler); },
+                //    function (handler: (event: JQueryMouseEventObject) => void) { element.unbind("mouseup"); });
 
+                //var mouseMoveObs = Rx.Observable.fromEvent<MouseEvent>(document, "mousemove");
                 var mouseMoveObs = Rx.Observable.fromEventPattern<JQueryMouseEventObject>(
                     function (handler: (event: JQueryMouseEventObject) => void) { element.bind("mousemove", handler); },
                     function (handler: (event: JQueryMouseEventObject) => void) { element.unbind("mousemove"); });
 
-                var mousePointerObs = mouseMoveObs.select(eventToPoint).throttle(1/15);
+                var mousePointerObs = mouseMoveObs.select(ngEventToPoint).throttle(1 / 15);
 
                 var drag = mouseDownObs
                     .where(downEvent => downEvent.button === 0)
                     .selectMany(downEvent => mousePointerObs
-                        .startWith(eventToPoint(downEvent))
+                        .startWith(ngEventToPoint(downEvent))
                         .zip(mousePointerObs, (first, second) => first.sub(second))
                         .takeUntil(mouseUpObs));
 
                 drag.subscribe(delta => {
-                    cameraService.position = cameraService.position.add(delta);
+                    scope.$apply((s: ng.IScope) => {
+                        cameraService.position = cameraService.position.add(delta);
+                    });
                     hexMapInteractionService.doRender();
                 });
 
@@ -112,14 +114,17 @@ module HexMaps {
                     .selectMany(downEvent => mouseUpObs.takeUntil(mouseMoveObs).take(1));
 
                 selection.subscribe(clickEvent => {
-                    hexMapInteractionService.makeSelection(eventToPoint(clickEvent));
+                    scope.$apply((s: ng.IScope) => {
+                        hexMapInteractionService.makeSelection(eventToPoint(clickEvent));
+                    });
+                    hexMapInteractionService.doRender();
                 });
             }
         };
     }
-    SelectHexMapDirective.$inject = ['hexMapInteractionService', 'cameraService'];
+    HexMapInteractDirective.$inject = ['hexMapInteractionService', 'cameraService'];
 
-    export function DrawHexMapDirective(
+    export function HexMapDrawDirective(
         hexMapInteractionService: IHexMapInteractionService,
         cameraService: ICameraService): ng.IDirective {
         console.log("Creating a drawHexMap directive!");
@@ -144,7 +149,7 @@ module HexMaps {
                     ctx.clearRect(0, 0, width, height);
 
                     var worldRect = new Rectangle(cameraService.position.X, cameraService.position.Y, cameraService.width, cameraService.height);
-                    
+
                     var hexRect = new HexRectangle(worldRect);
                     hexRect.forEachCoord(function (coord: AxialCoord) {
                         var tile = map.hexAt(coord);
@@ -168,7 +173,7 @@ module HexMaps {
             }
         };
     }
-    DrawHexMapDirective.$inject = ['hexMapInteractionService', 'cameraService'];
+    HexMapDrawDirective.$inject = ['hexMapInteractionService', 'cameraService'];
 
     export class HexTileDefinitions implements IHexTileDefinitions {
 
@@ -215,7 +220,7 @@ module HexMaps {
             } else if (this.pos.X < 0) {
                 this.pos.X = 0;
             }
-            
+
             if (this.pos.Y + this.height > worldPoint.Y) {
                 this.pos.Y = worldPoint.Y - this.height;
             } else if (this.pos.Y < 0) {
@@ -284,13 +289,13 @@ module HexMaps {
                 console.log("no hex selected");
             }
 
-            if (this.isRenderingStarted) {
-                this.renderMap(this.hexMapService.hexMap);
-            }
+            //if (this.isRenderingStarted) {
+            //    this.renderMap(this.hexMapService.hexMap);
+            //}
         }
 
         doRender() {
-            if (this.renderMap) {
+            if (this.isRenderingStarted) {
                 this.renderMap(this.hexMapService.hexMap);
             }
         }
@@ -326,6 +331,6 @@ var hexMapModule = angular.module("hexMap", [])
     .service("hexMapInteractionService", HexMaps.HexMapInteractionService)
     .service("hexTileDefinitions", HexMaps.HexTileDefinitions)
     .service("hexMapService", HexMaps.HexMapService)
-    .directive("drawHexMap", HexMaps.DrawHexMapDirective)
-    .directive("selectHexMap", HexMaps.SelectHexMapDirective);
+    .directive("hxDraw", HexMaps.HexMapDrawDirective)
+    .directive("hxInteract", HexMaps.HexMapInteractDirective);
 hexMapModule.controller("hexMapCtrl", HexMaps.HexMapController);

@@ -328,11 +328,10 @@ var HexMaps;
 
             var vertexToVertex = 2 * x + z;
 
-            var contentDiv = document.getElementById("hexStatus");
-
             HexagonDefinition.VertexToVertex = vertexToVertex;
             HexagonDefinition.EdgeToEdge = edgeToEdge;
             HexagonDefinition.SideLength = z;
+            HexagonDefinition.Flare = x;
 
             HexagonDefinition.FlatTopPoints = [
                 new HexMaps.Point(-vertexToVertex / 2, 0),
@@ -351,12 +350,13 @@ var HexMaps;
                 new Point(0, x + z),
                 new Point(0, x)
             ];
-
-            contentDiv.innerHTML = "Values for Hex: <br /><b>Vertex to Vertex:</b> " + vertexToVertex + "<br /><b>Edge to Edge: </b>" + edgeToEdge + "<br /><b>Side Length, z:</b> " + z + "<br /><b>x:</b> " + x + "<br /><b>y:</b> " + y;
+            //var contentDiv = document.getElementById("hexStatus");
+            //contentDiv.innerHTML = "Values for Hex: <br /><b>Vertex to Vertex:</b> " + vertexToVertex + "<br /><b>Edge to Edge: </b>" + edgeToEdge + "<br /><b>Side Length, z:</b> " + z + "<br /><b>x:</b> " + x + "<br /><b>y:</b> " + y;
         };
         HexagonDefinition.VertexToVertex = 91.14378277661477;
         HexagonDefinition.EdgeToEdge = 91.14378277661477;
         HexagonDefinition.SideLength = 50.0;
+        HexagonDefinition.Flare = 5.0;
         return HexagonDefinition;
     })();
     HexMaps.HexagonDefinition = HexagonDefinition;
