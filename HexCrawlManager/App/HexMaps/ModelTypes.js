@@ -306,9 +306,9 @@ var HexMaps;
     HexMaps.hexRound = hexRound;
 
     var HexagonDefinition = (function () {
-        function HexagonDefinition(color) {
+        function HexagonDefinition(color, name) {
             this.color = color;
-            this.Id = null;
+            this.name = name;
         }
         Object.defineProperty(HexagonDefinition, "alternatingDifference", {
             get: function () {

@@ -17,8 +17,17 @@
             <span>Cam Y: {{camera.position.Y}}</span>
         </div>
     </div>
-    <div>
-        <canvas id="hexCanvas" width="800" height="600" style="background-color: cornflowerblue"
-                data-hx-draw data-hx-interact></canvas>
+    <div class="row">
+        <div class="col-md-9">
+            <canvas id="hexCanvas" width="800" height="600" style="background-color: cornflowerblue"
+                    data-hx-draw data-hx-interact></canvas>
+        </div>
+        <div class="col-md-3">
+            <a class="btn pull-right" ng-class="{true: 'btn-success', false: 'btn-default'}[interaction.isSelecting]" ng-click="setIsSelecting()">Select</a>
+            <br />
+            <div class="btn-group-vertical">
+                <a class="btn pull-right" ng-repeat="tile in tiles" ng-class="{true: 'btn-success', false: 'btn-primary'}[interaction.paintingTile === tile]" ng-click="setPaintTile(tile)">{{tile.name}}</a>
+            </div>
+        </div>
     </div>
 </div>

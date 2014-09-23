@@ -31,12 +31,16 @@ module HexMaps {
 
         selectedHex: HexTile;
 
-        makeSelection(point: Point);
+        doInteraction(point: Point);
 
         doRender();
         renderMap(map: HexTileMap);
 
         startRenderLoop();
+
+        isSelecting: boolean;
+
+        paintingTile: HexagonDefinition;
     }
 
     export interface IHexMapService {
@@ -50,10 +54,22 @@ module HexMaps {
         flare: number;
 
         camera: ICameraService;
+
+        tiles: HexagonDefinition[];
+
+        interaction: IHexMapInteractionService;
+
+        setIsSelecting(): void;
+        setPaintTile(tile: HexagonDefinition): void;
     }
 
     export class HexMapController {
-        constructor(private $scope: HaxMapScope, hexMapService: IHexMapService, cameraService: ICameraService) {
+        constructor(
+            private $scope: HaxMapScope,
+            hexMapService: IHexMapService,
+            cameraService: ICameraService,
+            hexTiles: IHexTileDefinitions,
+            interactionService: IHexMapInteractionService) {
 
             $scope.edgeToEdge = HexMaps.HexagonDefinition.EdgeToEdge;
             $scope.vertexToVertex = HexMaps.HexagonDefinition.VertexToVertex;
@@ -61,9 +77,15 @@ module HexMaps {
             $scope.flare = HexMaps.HexagonDefinition.Flare;
 
             $scope.camera = cameraService;
+            $scope.interaction = interactionService;
+
+            $scope.tiles = [hexTiles.DefaultHex, hexTiles.RedTile, hexTiles.GreenTile, hexTiles.BlueTile];
+
+            $scope.setIsSelecting = () => { interactionService.isSelecting = true; interactionService.paintingTile = null; };
+            $scope.setPaintTile = tile => { interactionService.isSelecting = false; interactionService.paintingTile = tile; };
         }
 
-        static $inject = ['$scope', 'hexMapService', 'cameraService'];
+        static $inject = ['$scope', 'hexMapService', 'cameraService', 'hexTileDefinitions', 'hexMapInteractionService'];
     }
 
     export function HexMapInteractDirective(
@@ -111,11 +133,11 @@ module HexMaps {
 
                 var selection = mouseDownObs
                     .where(downEvent => downEvent.button === 0)
-                    .selectMany(downEvent => mouseUpObs.takeUntil(mouseMoveObs).take(1));
+                    .selectMany(downEvent => mouseUpObs.takeUntil(mouseMoveObs.skip(1)).take(1));
 
                 selection.subscribe(clickEvent => {
                     scope.$apply((s: ng.IScope) => {
-                        hexMapInteractionService.makeSelection(eventToPoint(clickEvent));
+                        hexMapInteractionService.doInteraction(eventToPoint(clickEvent));
                     });
                     hexMapInteractionService.doRender();
                 });
@@ -154,7 +176,7 @@ module HexMaps {
                     hexRect.forEachCoord(function (coord: AxialCoord) {
                         var tile = map.hexAt(coord);
                         if (tile) {
-                            tile.draw(ctx, cameraService.position, hexRect.isInBounds(tile.coord));
+                            tile.draw(ctx, cameraService.position);
                         }
                     });
 
@@ -177,10 +199,10 @@ module HexMaps {
 
     export class HexTileDefinitions implements IHexTileDefinitions {
 
-        defaultHex: HexagonDefinition = new HexagonDefinition("LightGray");
-        redHex: HexagonDefinition = new HexagonDefinition("Red");
-        greenHex: HexagonDefinition = new HexagonDefinition("Green");
-        blueHex: HexagonDefinition = new HexagonDefinition("Blue");
+        defaultHex: HexagonDefinition = new HexagonDefinition("LightGray", "Default");
+        redHex: HexagonDefinition = new HexagonDefinition("Red", "Red");
+        greenHex: HexagonDefinition = new HexagonDefinition("Green", "Green");
+        blueHex: HexagonDefinition = new HexagonDefinition("Blue", "Blue");
 
         hexes: Map<string, HexagonDefinition> = new Map<string, HexagonDefinition>();
 
@@ -252,6 +274,10 @@ module HexMaps {
 
         clickStatus: HTMLDivElement;
 
+        isSelecting: boolean;
+
+        paintingTile: HexagonDefinition;
+
         private hexMapService: IHexMapService;
         private cameraService: ICameraService;
 
@@ -260,33 +286,43 @@ module HexMaps {
             this.hexMapService = hexMapService;
             this.cameraService = cameraService;
 
+            this.isSelecting = true;
+            this.paintingTile = null;
+
             this.clickStatus = <HTMLDivElement>document.getElementById("debugInfo");
         }
 
-        makeSelection(point: Point) {
-            console.log("A selection was made at " + point.X + ", " + point.Y);
+        doInteraction(point: Point) {
             var worldPoint = point.add(this.cameraService.position);
-            console.log("      World location at " + worldPoint.X + ", " + worldPoint.Y);
-
-            if (this.selectedHex) {
-                this.selectedHex = null;
-            }
-
             var coord = AxialCoord.fromPoint(worldPoint);
-            console.log("selected coord: q " + coord.q + ", r " + coord.r);
 
-            var hex = this.hexMapService.hexMap.hexAt(coord);
+            if (this.isSelecting === true) {
+                console.log("A selection was made at " + point.X + ", " + point.Y);
+                console.log("      World location at " + worldPoint.X + ", " + worldPoint.Y);
 
-            if (hex) {
-                this.selectedHex = hex;
-                this.clickStatus.innerHTML = "Selected hex: " + coord + "<br />Mouse x: " + worldPoint.X + "<br />Mouse y: " + worldPoint.Y +
-                "<br />Coord q " + coord.q + ", r " + coord.r;
-                console.log("selected hex " + coord);
-            }
-            else {
-                this.clickStatus.innerHTML = "No hex selected<br />Mouse x: " + worldPoint.X + "<br />Mouse y: " + worldPoint.Y +
-                "<br />Coord q " + coord.q + ", r " + coord.r;
-                console.log("no hex selected");
+                if (this.selectedHex) {
+                    this.selectedHex = null;
+                }
+
+                console.log("selected coord: q " + coord.q + ", r " + coord.r);
+
+                var hex = this.hexMapService.hexMap.hexAt(coord);
+
+                if (hex) {
+                    this.selectedHex = hex;
+                    this.clickStatus.innerHTML = "Selected hex: " + coord + "<br />Mouse x: " + worldPoint.X + "<br />Mouse y: " + worldPoint.Y +
+                    "<br />Coord q " + coord.q + ", r " + coord.r;
+                    console.log("selected hex " + coord);
+                }
+                else {
+                    this.clickStatus.innerHTML = "No hex selected<br />Mouse x: " + worldPoint.X + "<br />Mouse y: " + worldPoint.Y +
+                    "<br />Coord q " + coord.q + ", r " + coord.r;
+                    console.log("no hex selected");
+                }
+            } else if (this.paintingTile !== null) {
+
+                this.hexMapService.hexMap.setHex(coord, this.paintingTile);
+
             }
 
             //if (this.isRenderingStarted) {

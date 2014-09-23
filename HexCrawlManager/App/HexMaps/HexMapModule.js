@@ -9,7 +9,7 @@ var HexMaps;
     'use strict';
 
     var HexMapController = (function () {
-        function HexMapController($scope, hexMapService, cameraService) {
+        function HexMapController($scope, hexMapService, cameraService, hexTiles, interactionService) {
             this.$scope = $scope;
             $scope.edgeToEdge = HexMaps.HexagonDefinition.EdgeToEdge;
             $scope.vertexToVertex = HexMaps.HexagonDefinition.VertexToVertex;
@@ -17,8 +17,20 @@ var HexMaps;
             $scope.flare = HexMaps.HexagonDefinition.Flare;
 
             $scope.camera = cameraService;
+            $scope.interaction = interactionService;
+
+            $scope.tiles = [hexTiles.DefaultHex, hexTiles.RedTile, hexTiles.GreenTile, hexTiles.BlueTile];
+
+            $scope.setIsSelecting = function () {
+                interactionService.isSelecting = true;
+                interactionService.paintingTile = null;
+            };
+            $scope.setPaintTile = function (tile) {
+                interactionService.isSelecting = false;
+                interactionService.paintingTile = tile;
+            };
         }
-        HexMapController.$inject = ['$scope', 'hexMapService', 'cameraService'];
+        HexMapController.$inject = ['$scope', 'hexMapService', 'cameraService', 'hexTileDefinitions', 'hexMapInteractionService'];
         return HexMapController;
     })();
     HexMaps.HexMapController = HexMapController;
@@ -75,12 +87,12 @@ var HexMaps;
                 var selection = mouseDownObs.where(function (downEvent) {
                     return downEvent.button === 0;
                 }).selectMany(function (downEvent) {
-                    return mouseUpObs.takeUntil(mouseMoveObs).take(1);
+                    return mouseUpObs.takeUntil(mouseMoveObs.skip(1)).take(1);
                 });
 
                 selection.subscribe(function (clickEvent) {
                     scope.$apply(function (s) {
-                        hexMapInteractionService.makeSelection(eventToPoint(clickEvent));
+                        hexMapInteractionService.doInteraction(eventToPoint(clickEvent));
                     });
                     hexMapInteractionService.doRender();
                 });
@@ -117,7 +129,7 @@ var HexMaps;
                     hexRect.forEachCoord(function (coord) {
                         var tile = map.hexAt(coord);
                         if (tile) {
-                            tile.draw(ctx, cameraService.position, hexRect.isInBounds(tile.coord));
+                            tile.draw(ctx, cameraService.position);
                         }
                     });
 
@@ -139,10 +151,10 @@ var HexMaps;
 
     var HexTileDefinitions = (function () {
         function HexTileDefinitions() {
-            this.defaultHex = new HexMaps.HexagonDefinition("LightGray");
-            this.redHex = new HexMaps.HexagonDefinition("Red");
-            this.greenHex = new HexMaps.HexagonDefinition("Green");
-            this.blueHex = new HexMaps.HexagonDefinition("Blue");
+            this.defaultHex = new HexMaps.HexagonDefinition("LightGray", "Default");
+            this.redHex = new HexMaps.HexagonDefinition("Red", "Red");
+            this.greenHex = new HexMaps.HexagonDefinition("Green", "Green");
+            this.blueHex = new HexMaps.HexagonDefinition("Blue", "Blue");
             this.hexes = new Map();
             this.hexes.set("Default", this.defaultHex);
             this.hexes.set("Red", this.redHex);
@@ -237,29 +249,37 @@ var HexMaps;
             this.hexMapService = hexMapService;
             this.cameraService = cameraService;
 
+            this.isSelecting = true;
+            this.paintingTile = null;
+
             this.clickStatus = document.getElementById("debugInfo");
         }
-        HexMapInteractionService.prototype.makeSelection = function (point) {
-            console.log("A selection was made at " + point.X + ", " + point.Y);
+        HexMapInteractionService.prototype.doInteraction = function (point) {
             var worldPoint = point.add(this.cameraService.position);
-            console.log("      World location at " + worldPoint.X + ", " + worldPoint.Y);
-
-            if (this.selectedHex) {
-                this.selectedHex = null;
-            }
-
             var coord = HexMaps.AxialCoord.fromPoint(worldPoint);
-            console.log("selected coord: q " + coord.q + ", r " + coord.r);
 
-            var hex = this.hexMapService.hexMap.hexAt(coord);
+            if (this.isSelecting === true) {
+                console.log("A selection was made at " + point.X + ", " + point.Y);
+                console.log("      World location at " + worldPoint.X + ", " + worldPoint.Y);
 
-            if (hex) {
-                this.selectedHex = hex;
-                this.clickStatus.innerHTML = "Selected hex: " + coord + "<br />Mouse x: " + worldPoint.X + "<br />Mouse y: " + worldPoint.Y + "<br />Coord q " + coord.q + ", r " + coord.r;
-                console.log("selected hex " + coord);
-            } else {
-                this.clickStatus.innerHTML = "No hex selected<br />Mouse x: " + worldPoint.X + "<br />Mouse y: " + worldPoint.Y + "<br />Coord q " + coord.q + ", r " + coord.r;
-                console.log("no hex selected");
+                if (this.selectedHex) {
+                    this.selectedHex = null;
+                }
+
+                console.log("selected coord: q " + coord.q + ", r " + coord.r);
+
+                var hex = this.hexMapService.hexMap.hexAt(coord);
+
+                if (hex) {
+                    this.selectedHex = hex;
+                    this.clickStatus.innerHTML = "Selected hex: " + coord + "<br />Mouse x: " + worldPoint.X + "<br />Mouse y: " + worldPoint.Y + "<br />Coord q " + coord.q + ", r " + coord.r;
+                    console.log("selected hex " + coord);
+                } else {
+                    this.clickStatus.innerHTML = "No hex selected<br />Mouse x: " + worldPoint.X + "<br />Mouse y: " + worldPoint.Y + "<br />Coord q " + coord.q + ", r " + coord.r;
+                    console.log("no hex selected");
+                }
+            } else if (this.paintingTile !== null) {
+                this.hexMapService.hexMap.setHex(coord, this.paintingTile);
             }
             //if (this.isRenderingStarted) {
             //    this.renderMap(this.hexMapService.hexMap);

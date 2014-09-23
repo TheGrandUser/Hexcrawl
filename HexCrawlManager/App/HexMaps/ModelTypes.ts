@@ -345,9 +345,7 @@ module HexMaps {
             //contentDiv.innerHTML = "Values for Hex: <br /><b>Vertex to Vertex:</b> " + vertexToVertex + "<br /><b>Edge to Edge: </b>" + edgeToEdge + "<br /><b>Side Length, z:</b> " + z + "<br /><b>x:</b> " + x + "<br /><b>y:</b> " + y;
         }
 
-        Id: string = null;
-
-        constructor(public color: string) {
+        constructor(public color: string, public name: string) {
 
         }
     }
