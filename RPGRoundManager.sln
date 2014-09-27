@@ -5,6 +5,8 @@ VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HexCrawlManager", "HexCrawlManager\HexCrawlManager.csproj", "{E39709A9-DD3E-4802-961C-4068BC07BB25}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HexCrawlManager.Tests", "HexCrawlManager.Tests\HexCrawlManager.Tests.csproj", "{D0DFA146-83D4-4937-9A65-6A3E7F55DF47}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{E39709A9-DD3E-4802-961C-4068BC07BB25}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E39709A9-DD3E-4802-961C-4068BC07BB25}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E39709A9-DD3E-4802-961C-4068BC07BB25}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0DFA146-83D4-4937-9A65-6A3E7F55DF47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0DFA146-83D4-4937-9A65-6A3E7F55DF47}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0DFA146-83D4-4937-9A65-6A3E7F55DF47}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0DFA146-83D4-4937-9A65-6A3E7F55DF47}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

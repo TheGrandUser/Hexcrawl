@@ -1,11 +1,23 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
 
-(function (root, factory) {
-    var freeExports = typeof exports == 'object' && exports,
-        freeModule = typeof module == 'object' && module && module.exports == freeExports && module,
-        freeGlobal = typeof global == 'object' && global;
-    if (freeGlobal.global === freeGlobal) {
-        window = freeGlobal;
+;(function (factory) {
+    var objectTypes = {
+        'boolean': false,
+        'function': true,
+        'object': true,
+        'number': false,
+        'string': false,
+        'undefined': false
+    };
+
+    var root = (objectTypes[typeof window] && window) || this,
+        freeExports = objectTypes[typeof exports] && exports && !exports.nodeType && exports,
+        freeModule = objectTypes[typeof module] && module && !module.nodeType && module,
+        moduleExports = freeModule && freeModule.exports === freeExports && freeExports,
+        freeGlobal = objectTypes[typeof global] && global;
+    
+    if (freeGlobal && (freeGlobal.global === freeGlobal || freeGlobal.window === freeGlobal)) {
+        root = freeGlobal;
     }
 
     // Because of build optimizers
@@ -19,66 +31,79 @@
     } else {
         root.Rx = factory(root, {}, root.Rx);
     }
-}(this, function (global, exp, Rx, undefined) {
+}.call(this, function (root, exp, Rx, undefined) {
     
-    // References
-    var Observable = Rx.Observable,
-        observableProto = Observable.prototype,
-        CompositeDisposable = Rx.CompositeDisposable,
-        AnonymousObservable = Rx.Internals.AnonymousObservable,
-        isEqual = Rx.Internals.isEqual;
+  // References
+  var Observable = Rx.Observable,
+    observableProto = Observable.prototype,
+    CompositeDisposable = Rx.CompositeDisposable,
+    AnonymousObservable = Rx.AnonymousObservable,
+    isEqual = Rx.internals.isEqual,
+    helpers = Rx.helpers,
+    not = helpers.not,
+    defaultComparer = helpers.defaultComparer,
+    identity = helpers.identity,
+    defaultSubComparer = helpers.defaultSubComparer,
+    isFunction = helpers.isFunction,
+    isPromise = helpers.isPromise,
+    observableFromPromise = Observable.fromPromise;
 
-    // Defaults
-    var argumentOutOfRange = 'Argument out of range';
-    var sequenceContainsNoElements = "Sequence contains no elements.";
-    function defaultComparer(x, y) { return isEqual(x, y); }
-    function identity(x) { return x; }
-    function subComparer(x, y) {
-        if (x > y) {
-            return 1;
+  // Defaults
+  var argumentOutOfRange = 'Argument out of range',
+      sequenceContainsNoElements = "Sequence contains no elements.";
+  
+  observableProto.finalValue = function () {
+    var source = this;
+    return new AnonymousObservable(function (observer) {
+      var hasValue = false, value;
+      return source.subscribe(function (x) {
+        hasValue = true;
+        value = x;
+      }, observer.onError.bind(observer), function () {
+        if (!hasValue) {
+          observer.onError(new Error(sequenceContainsNoElements));
+        } else {
+          observer.onNext(value);
+          observer.onCompleted();
         }
-        if (x < y) {
-            return -1
+      });
+    });
+  };
+
+  function extremaBy(source, keySelector, comparer) {
+    return new AnonymousObservable(function (observer) {
+      var hasValue = false, lastKey = null, list = [];
+      return source.subscribe(function (x) {
+        var comparison, key;
+        try {
+          key = keySelector(x);
+        } catch (ex) {
+          observer.onError(ex);
+          return;
         }
-        return 0;
-    }
-    
-    function extremaBy(source, keySelector, comparer) {
-        return new AnonymousObservable(function (observer) {
-            var hasValue = false, lastKey = null, list = [];
-            return source.subscribe(function (x) {
-                var comparison, key;
-                try {
-                    key = keySelector(x);
-                } catch (ex) {
-                    observer.onError(ex);
-                    return;
-                }
-                comparison = 0;
-                if (!hasValue) {
-                    hasValue = true;
-                    lastKey = key;
-                } else {
-                    try {
-                        comparison = comparer(key, lastKey);
-                    } catch (ex1) {
-                        observer.onError(ex1);
-                        return;
-                    }
-                }
-                if (comparison > 0) {
-                    lastKey = key;
-                    list = [];
-                }
-                if (comparison >= 0) {
-                    list.push(x);
-                }
-            }, observer.onError.bind(observer), function () {
-                observer.onNext(list);
-                observer.onCompleted();
-            });
-        });
-    }
+        comparison = 0;
+        if (!hasValue) {
+          hasValue = true;
+          lastKey = key;
+        } else {
+          try {
+            comparison = comparer(key, lastKey);
+          } catch (ex1) {
+            observer.onError(ex1);
+            return;
+          }
+        }
+        if (comparison > 0) {
+          lastKey = key;
+          list = [];
+        }
+        if (comparison >= 0) { list.push(x); }
+      }, observer.onError.bind(observer), function () {
+        observer.onNext(list);
+        observer.onCompleted();
+      });
+    });
+  }
 
     function firstOnly(x) {
         if (x.length === 0) {
@@ -151,15 +176,13 @@
             });
     };
 
-    /**
-     * Determines whether an observable sequence is empty.
-     *
-     * @memberOf Observable#
-     * @returns {Observable} An observable sequence containing a single element determining whether the source sequence is empty.
-     */
-    observableProto.isEmpty = function () {
-        return this.any().select(function (b) { return !b; });
-    };
+  /**
+   * Determines whether an observable sequence is empty.
+   * @returns {Observable} An observable sequence containing a single element determining whether the source sequence is empty.
+   */
+  observableProto.isEmpty = function () {
+    return this.any().map(not);
+  };
 
     /**
      * Determines whether all elements of an observable sequence satisfy a condition.
@@ -211,22 +234,22 @@
             });
     };
 
-    /**
-     * Computes the sum of a sequence of values that are obtained by invoking an optional transform function on each element of the input sequence, else if not specified computes the sum on each item in the sequence.
-     * @example
-     * var res = source.sum();
-     * var res = source.sum(function (x) { return x.value; });
-     * @param {Function} [selector] A transform function to apply to each element.
-     * @param {Any} [thisArg] Object to use as this when executing callback.        
-     * @returns {Observable} An observable sequence containing a single element with the sum of the values in the source sequence.
-     */    
-    observableProto.sum = function (keySelector, thisArg) {
-        return keySelector ? 
-            this.select(keySelector, thisArg).sum() :
-            this.aggregate(0, function (prev, curr) {
-                return prev + curr;
-            });
-    };
+  /**
+   * Computes the sum of a sequence of values that are obtained by invoking an optional transform function on each element of the input sequence, else if not specified computes the sum on each item in the sequence.
+   * @example
+   * var res = source.sum();
+   * var res = source.sum(function (x) { return x.value; });
+   * @param {Function} [selector] A transform function to apply to each element.
+   * @param {Any} [thisArg] Object to use as this when executing callback.        
+   * @returns {Observable} An observable sequence containing a single element with the sum of the values in the source sequence.
+   */    
+  observableProto.sum = function (keySelector, thisArg) {
+    return keySelector && isFunction(keySelector) ? 
+      this.map(keySelector, thisArg).sum() :
+      this.aggregate(0, function (prev, curr) {
+        return prev + curr;
+      });
+  };
 
     /**
      * Returns the elements in an observable sequence with the minimum key value according to the specified comparer.
@@ -238,7 +261,7 @@
      * @returns {Observable} An observable sequence containing a list of zero or more elements that have a minimum key value.
      */  
     observableProto.minBy = function (keySelector, comparer) {
-        comparer || (comparer = subComparer);
+        comparer || (comparer = defaultSubComparer);
         return extremaBy(this, keySelector, function (x, y) {
             return comparer(x, y) * -1;
         });
@@ -268,7 +291,7 @@
      * @returns {Observable} An observable sequence containing a list of zero or more elements that have a maximum key value.
      */
     observableProto.maxBy = function (keySelector, comparer) {
-        comparer || (comparer = subComparer);
+        comparer || (comparer = defaultSubComparer);
         return extremaBy(this, keySelector, comparer);
     };
 
@@ -307,121 +330,124 @@
                     count: prev.count + 1
                 };
             }).finalValue().select(function (s) {
+                if (s.count === 0) {
+                    throw new Error('The input sequence was empty');
+                }
                 return s.sum / s.count;
             });
     };
 
-    function sequenceEqualArray(first, second, comparer) {
-        return new AnonymousObservable(function (observer) {
-            var count = 0, len = second.length;
-            return first.subscribe(function (value) {
-                var equal = false;
-                try {
-                    if (count < len) {
-                        equal = comparer(value, second[count++]);
-                    }
-                } catch (e) {
-                    observer.onError(e);
-                    return;
-                }
-                if (!equal) {
-                    observer.onNext(false);
-                    observer.onCompleted();
-                }
-            }, observer.onError.bind(observer), function () {
-                observer.onNext(count === len);
-                observer.onCompleted();
-            });
-        });
-    }
-
-    /**
-     *  Determines whether two sequences are equal by comparing the elements pairwise using a specified equality comparer.
-     * 
-     * @example
-     * var res = res = source.sequenceEqual([1,2,3]);
-     * var res = res = source.sequenceEqual([{ value: 42 }], function (x, y) { return x.value === y.value; });
-     * 3 - res = source.sequenceEqual(Rx.Observable.returnValue(42));
-     * 4 - res = source.sequenceEqual(Rx.Observable.returnValue({ value: 42 }), function (x, y) { return x.value === y.value; });
-     * @param {Observable} second Second observable sequence or array to compare.
-     * @param {Function} [comparer] Comparer used to compare elements of both sequences.
-     * @returns {Observable} An observable sequence that contains a single element which indicates whether both sequences are of equal length and their corresponding elements are equal according to the specified equality comparer.
-     */
-    observableProto.sequenceEqual = function (second, comparer) {
-        var first = this;
-        comparer || (comparer = defaultComparer);
-        if (Array.isArray(second)) {
-            return sequenceEqualArray(first, second, comparer);
+  function sequenceEqualArray(first, second, comparer) {
+    return new AnonymousObservable(function (observer) {
+      var count = 0, len = second.length;
+      return first.subscribe(function (value) {
+        var equal = false;
+        try {
+          count < len && (equal = comparer(value, second[count++]));
+        } catch (e) {
+          observer.onError(e);
+          return;
         }
-        return new AnonymousObservable(function (observer) {
-            var donel = false, doner = false, ql = [], qr = [];
-            var subscription1 = first.subscribe(function (x) {
-                var equal, v;
-                if (qr.length > 0) {
-                    v = qr.shift();
-                    try {
-                        equal = comparer(v, x);
-                    } catch (e) {
-                        observer.onError(e);
-                        return;
-                    }
-                    if (!equal) {
-                        observer.onNext(false);
-                        observer.onCompleted();
-                    }
-                } else if (doner) {
-                    observer.onNext(false);
-                    observer.onCompleted();
-                } else {
-                    ql.push(x);
-                }
-            }, observer.onError.bind(observer), function () {
-                donel = true;
-                if (ql.length === 0) {
-                    if (qr.length > 0) {
-                        observer.onNext(false);
-                        observer.onCompleted();
-                    } else if (doner) {
-                        observer.onNext(true);
-                        observer.onCompleted();
-                    }
-                }
-            });
-            var subscription2 = second.subscribe(function (x) {
-                var equal, v;
-                if (ql.length > 0) {
-                    v = ql.shift();
-                    try {
-                        equal = comparer(v, x);
-                    } catch (exception) {
-                        observer.onError(exception);
-                        return;
-                    }
-                    if (!equal) {
-                        observer.onNext(false);
-                        observer.onCompleted();
-                    }
-                } else if (donel) {
-                    observer.onNext(false);
-                    observer.onCompleted();
-                } else {
-                    qr.push(x);
-                }
-            }, observer.onError.bind(observer), function () {
-                doner = true;
-                if (qr.length === 0) {
-                    if (ql.length > 0) {
-                        observer.onNext(false);
-                        observer.onCompleted();
-                    } else if (donel) {
-                        observer.onNext(true);
-                        observer.onCompleted();
-                    }
-                }
-            });
-            return new CompositeDisposable(subscription1, subscription2);
-        });
-    };
+        if (!equal) {
+          observer.onNext(false);
+          observer.onCompleted();
+        }
+      }, observer.onError.bind(observer), function () {
+        observer.onNext(count === len);
+        observer.onCompleted();
+      });
+    });
+  }
+
+  /**
+   *  Determines whether two sequences are equal by comparing the elements pairwise using a specified equality comparer.
+   * 
+   * @example
+   * var res = res = source.sequenceEqual([1,2,3]);
+   * var res = res = source.sequenceEqual([{ value: 42 }], function (x, y) { return x.value === y.value; });
+   * 3 - res = source.sequenceEqual(Rx.Observable.returnValue(42));
+   * 4 - res = source.sequenceEqual(Rx.Observable.returnValue({ value: 42 }), function (x, y) { return x.value === y.value; });
+   * @param {Observable} second Second observable sequence or array to compare.
+   * @param {Function} [comparer] Comparer used to compare elements of both sequences.
+   * @returns {Observable} An observable sequence that contains a single element which indicates whether both sequences are of equal length and their corresponding elements are equal according to the specified equality comparer.
+   */
+  observableProto.sequenceEqual = function (second, comparer) {
+    var first = this;
+    comparer || (comparer = defaultComparer);
+    if (Array.isArray(second)) {
+      return sequenceEqualArray(first, second, comparer);
+    }
+    return new AnonymousObservable(function (observer) {
+      var donel = false, doner = false, ql = [], qr = [];
+      var subscription1 = first.subscribe(function (x) {
+        var equal, v;
+        if (qr.length > 0) {
+          v = qr.shift();
+          try {
+            equal = comparer(v, x);
+          } catch (e) {
+            observer.onError(e);
+            return;
+          }
+          if (!equal) {
+            observer.onNext(false);
+            observer.onCompleted();
+          }
+        } else if (doner) {
+          observer.onNext(false);
+          observer.onCompleted();
+        } else {
+          ql.push(x);
+        }
+      }, observer.onError.bind(observer), function () {
+        donel = true;
+        if (ql.length === 0) {
+          if (qr.length > 0) {
+            observer.onNext(false);
+            observer.onCompleted();
+          } else if (doner) {
+            observer.onNext(true);
+            observer.onCompleted();
+          }
+        }
+      });
+
+      isPromise(second) && (second = observableFromPromise(second));
+      var subscription2 = second.subscribe(function (x) {
+        var equal;
+        if (ql.length > 0) {
+          var v = ql.shift();
+          try {
+            equal = comparer(v, x);
+          } catch (exception) {
+            observer.onError(exception);
+            return;
+          }
+          if (!equal) {
+            observer.onNext(false);
+            observer.onCompleted();
+          }
+        } else if (donel) {
+          observer.onNext(false);
+          observer.onCompleted();
+        } else {
+          qr.push(x);
+        }
+      }, observer.onError.bind(observer), function () {
+        doner = true;
+        if (qr.length === 0) {
+          if (ql.length > 0) {
+            observer.onNext(false);
+            observer.onCompleted();
+          } else if (donel) {
+            observer.onNext(true);
+            observer.onCompleted();
+          }
+        }
+      });
+      return new CompositeDisposable(subscription1, subscription2);
+    });
+  };
 
     function elementAtOrDefault(source, index, hasDefault, defaultValue) {
         if (index < 0) {
@@ -470,60 +496,60 @@
         return elementAtOrDefault(this, index, true, defaultValue);
     };
 
-    function singleOrDefaultAsync(source, hasDefault, defaultValue) {
-        return new AnonymousObservable(function (observer) {
-            var value = defaultValue, seenValue = false;
-            return source.subscribe(function (x) {
-                if (seenValue) {
-                    observer.onError(new Error('Sequence contains more than one element'));
-                } else {
-                    value = x;
-                    seenValue = true;
-                }
-            }, observer.onError.bind(observer), function () {
-                if (!seenValue && !hasDefault) {
-                    observer.onError(new Error(sequenceContainsNoElements));
-                } else {
-                    observer.onNext(value);
-                    observer.onCompleted();
-                }
-            });
-        });
-    }
+  function singleOrDefaultAsync(source, hasDefault, defaultValue) {
+    return new AnonymousObservable(function (observer) {
+      var value = defaultValue, seenValue = false;
+      return source.subscribe(function (x) {
+        if (seenValue) {
+          observer.onError(new Error('Sequence contains more than one element'));
+        } else {
+          value = x;
+          seenValue = true;
+        }
+      }, observer.onError.bind(observer), function () {
+        if (!seenValue && !hasDefault) {
+          observer.onError(new Error(sequenceContainsNoElements));
+        } else {
+          observer.onNext(value);
+          observer.onCompleted();
+        }
+      });
+    });
+  }
 
-    /**
-     * Returns the only element of an observable sequence that satisfies the condition in the optional predicate, and reports an exception if there is not exactly one element in the observable sequence.
-     * @example
-     * var res = res = source.single();
-     * var res = res = source.single(function (x) { return x === 42; });
-     * @param {Function} [predicate] A predicate function to evaluate for elements in the source sequence.
-     * @param {Any} [thisArg] Object to use as `this` when executing the predicate.        
-     * @returns {Observable} Sequence containing the single element in the observable sequence that satisfies the condition in the predicate.
-     */
-    observableProto.single = function (predicate, thisArg) {
-        return predicate ?
-            this.where(predicate, thisArg).single() :
-            singleOrDefaultAsync(this, false);
-    };
+  /**
+   * Returns the only element of an observable sequence that satisfies the condition in the optional predicate, and reports an exception if there is not exactly one element in the observable sequence.
+   * @example
+   * var res = res = source.single();
+   * var res = res = source.single(function (x) { return x === 42; });
+   * @param {Function} [predicate] A predicate function to evaluate for elements in the source sequence.
+   * @param {Any} [thisArg] Object to use as `this` when executing the predicate.        
+   * @returns {Observable} Sequence containing the single element in the observable sequence that satisfies the condition in the predicate.
+   */
+  observableProto.single = function (predicate, thisArg) {
+    return predicate && isFunction(predicate) ?
+      this.where(predicate, thisArg).single() :
+      singleOrDefaultAsync(this, false);
+  };
 
-    /**
-     * Returns the only element of an observable sequence that matches the predicate, or a default value if no such element exists; this method reports an exception if there is more than one element in the observable sequence.
-     * @example
-     * var res = res = source.singleOrDefault();
-     * var res = res = source.singleOrDefault(function (x) { return x === 42; });
-     * res = source.singleOrDefault(function (x) { return x === 42; }, 0);
-     * res = source.singleOrDefault(null, 0);
-     * @memberOf Observable#
-     * @param {Function} predicate A predicate function to evaluate for elements in the source sequence.
-     * @param [defaultValue] The default value if the index is outside the bounds of the source sequence.
-     * @param {Any} [thisArg] Object to use as `this` when executing the predicate.        
-     * @returns {Observable} Sequence containing the single element in the observable sequence that satisfies the condition in the predicate, or a default value if no such element exists.
-     */
-    observableProto.singleOrDefault = function (predicate, defaultValue, thisArg) {
-        return predicate?
-            this.where(predicate, thisArg).singleOrDefault(null, defaultValue) :
-            singleOrDefaultAsync(this, true, defaultValue)
-    };
+  /**
+   * Returns the only element of an observable sequence that matches the predicate, or a default value if no such element exists; this method reports an exception if there is more than one element in the observable sequence.
+   * @example
+   * var res = res = source.singleOrDefault();
+   * var res = res = source.singleOrDefault(function (x) { return x === 42; });
+   * res = source.singleOrDefault(function (x) { return x === 42; }, 0);
+   * res = source.singleOrDefault(null, 0);
+   * @memberOf Observable#
+   * @param {Function} predicate A predicate function to evaluate for elements in the source sequence.
+   * @param [defaultValue] The default value if the index is outside the bounds of the source sequence.
+   * @param {Any} [thisArg] Object to use as `this` when executing the predicate.        
+   * @returns {Observable} Sequence containing the single element in the observable sequence that satisfies the condition in the predicate, or a default value if no such element exists.
+   */
+  observableProto.singleOrDefault = function (predicate, defaultValue, thisArg) {
+    return predicate && isFunction(predicate) ?
+      this.where(predicate, thisArg).singleOrDefault(null, defaultValue) :
+      singleOrDefaultAsync(this, true, defaultValue);
+  };
     function firstOrDefaultAsync(source, hasDefault, defaultValue) {
         return new AnonymousObservable(function (observer) {
             return source.subscribe(function (x) {
@@ -667,6 +693,68 @@
     observableProto.findIndex = function (predicate, thisArg) {
         return findValue(this, predicate, thisArg, true);
     };
+
+  if (!!root.Set) {
+    /**
+     * Converts the observable sequence to a Set if it exists.
+     * @returns {Observable} An observable sequence with a single value of a Set containing the values from the observable sequence.
+     */
+    observableProto.toSet = function () {
+      var source = this;
+      return new AnonymousObservable(function (observer) {
+        var s = new root.Set();
+        return source.subscribe(
+          s.add.bind(s),
+          observer.onError.bind(observer),
+          function () {
+            observer.onNext(s);
+            observer.onCompleted();
+          });
+      });
+    };
+  }
+
+  if (!!root.Map) {
+    /**
+    * Converts the observable sequence to a Map if it exists.
+    * @param {Function} keySelector A function which produces the key for the Map.
+    * @param {Function} [elementSelector] An optional function which produces the element for the Map. If not present, defaults to the value from the observable sequence.
+    * @returns {Observable} An observable sequence with a single value of a Map containing the values from the observable sequence.
+    */
+    observableProto.toMap = function (keySelector, elementSelector) {
+      var source = this;
+      return new AnonymousObservable(function (observer) {
+        var m = new root.Map();
+        return source.subscribe(
+          function (x) {
+            var key;
+            try {
+              key = keySelector(x);
+            } catch (e) {
+              observer.onError(e);
+              return;
+            }
+
+            var element = x;
+            if (elementSelector) {
+              try {
+                element = elementSelector(x);
+              } catch (e) {
+                observer.onError(e);
+                return;
+              }              
+            }
+
+            m.set(key, element);
+          },
+          observer.onError.bind(observer),
+          function () {
+            observer.onNext(m);
+            observer.onCompleted();
+          });
+      });
+    };
+  }
 
     return Rx;
 }));
