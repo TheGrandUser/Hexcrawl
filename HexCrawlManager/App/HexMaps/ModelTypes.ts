@@ -472,7 +472,7 @@ module HexMaps {
             this.minR = -Math.floor(this.width / 2);
             this.maxR = height;
 
-            this.hexes = new Array(height);
+            this.hexes = new Array(this.width);
 
             for (var colIndex = 0; colIndex < this.width; colIndex++) {
                 var firstRow: number;

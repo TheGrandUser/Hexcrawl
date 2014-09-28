@@ -484,7 +484,7 @@ var HexMaps;
             this.minR = -Math.floor(this.width / 2);
             this.maxR = height;
 
-            this.hexes = new Array(height);
+            this.hexes = new Array(this.width);
 
             for (var colIndex = 0; colIndex < this.width; colIndex++) {
                 var firstRow;
@@ -593,4 +593,4 @@ var HexMaps;
     })();
     HexMaps.HexTileMap = HexTileMap;
 })(HexMaps || (HexMaps = {}));
-//# sourceMappingURL=ModelTypes.js.map
+//# sourceMappingURL=modeltypes.js.map
