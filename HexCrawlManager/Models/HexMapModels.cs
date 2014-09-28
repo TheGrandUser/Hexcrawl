@@ -21,8 +21,8 @@ namespace HexCrawlManager.Models
 
    public class Point
    {
-      public double X;
-      public double Y;
+      public double X { get; set; }
+      public double Y { get; set; }
 
       public Point(double x, double y)
       {
@@ -38,7 +38,10 @@ namespace HexCrawlManager.Models
 
    public class Rectangle
    {
-      public double X, Y, Width, Height;
+      public double X { get; set; }
+      public double Y { get; set; }
+      public double Width { get; set; }
+      public double Height { get; set; }
 
       public Rectangle(double x, double y, double width, double height)
       {
@@ -51,8 +54,10 @@ namespace HexCrawlManager.Models
 
    public class Line
    {
-      public double X1, Y1;
-      public double X2, Y2;
+      public double X1 { get; set; }
+      public double Y1 { get; set; }
+      public double X2 { get; set; }
+      public double Y2 { get; set; }
 
       public Line(double x1, double y1, double x2, double y2)
       {
@@ -65,11 +70,9 @@ namespace HexCrawlManager.Models
 
    public class CubeCoord
    {
-      int x, y, z;
-
-      public int X { get { return x; } }
-      public int Y { get { return y; } }
-      public int Z { get { return z; } }
+      public int X { get; set; }
+      public int Y { get; set; }
+      public int Z { get; set; }
 
       public CubeCoord(int x, int y, int z)
       {
@@ -79,14 +82,14 @@ namespace HexCrawlManager.Models
             throw new ArgumentException("cube coords are invalid! " + x + ", " + y + ", " + z);
          }
 
-         this.x = x;
-         this.y = y;
-         this.z = z;
+         this.X = x;
+         this.Y = y;
+         this.Z = z;
       }
 
       public AxialCoord ToAxialCoord()
       {
-         return new AxialCoord(this.x, this.z);
+         return new AxialCoord(this.X, this.Z);
       }
 
       static int[][] neighbors =
@@ -99,7 +102,7 @@ namespace HexCrawlManager.Models
       {
          var d = neighbors[(int)direction];
 
-         return new CubeCoord(this.x + d[0], this.y + d[1], this.z + d[2]);
+         return new CubeCoord(this.X + d[0], this.Y + d[1], this.Z + d[2]);
       }
 
       public Point ToPixel(Orientation orientation = Orientation.FlatTopped)
@@ -107,14 +110,14 @@ namespace HexCrawlManager.Models
          var size = HexagonDefinition.SideLength;
          if (orientation == Orientation.FlatTopped)
          {
-            var x = size * 3 / 2 * this.x;
-            var y = size * HexMath.SQRT3 * (this.z + this.x / 2.0);
+            var x = size * 3 / 2 * this.X;
+            var y = size * HexMath.SQRT3 * (this.Z + this.X / 2.0);
             return new Point(x, y);
          }
          else
          {
-            var x = size * HexMath.SQRT3 * (this.x + this.z / 2.0);
-            var y = size * 3 / 2 * this.z;
+            var x = size * HexMath.SQRT3 * (this.X + this.Z / 2.0);
+            var y = size * 3 / 2 * this.Z;
             return new Point(x, y);
          }
       }
@@ -324,8 +327,8 @@ namespace HexCrawlManager.Models
       public static double Flare = 5.0;
       public static Point[] FlatTopPoints;
       public static Point[] PointyTopPoints;
-      
-      static Dictionary<string, HexagonDefinition> definitions = new Dictionary<string,HexagonDefinition>();
+
+      static Dictionary<string, HexagonDefinition> definitions = new Dictionary<string, HexagonDefinition>();
 
       public static double AlternatingDifference { get { return 3 / 4 * VertexToVertex; } }
       public static void SetupHexStatics(double edgeToEdge)
