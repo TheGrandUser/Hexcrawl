@@ -1,7 +1,7 @@
-﻿/// <reference path="../../scripts/rx.d.ts" />
-/// <reference path="../../scripts/rx.async.d.ts" />
-/// <reference path="../../scripts/rx.binding.d.ts" />
-/// <reference path="../../scripts/rx.time.d.ts" />
+﻿/// <reference path="../../scripts/typings/rx/rx.d.ts" />
+/// <reference path="../../scripts/typings/rx/rx.async.d.ts" />
+/// <reference path="../../scripts/typings/rx/rx.binding.d.ts" />
+/// <reference path="../../scripts/typings/rx/rx.time.d.ts" />
 
 module HexMaps {
 
@@ -128,7 +128,7 @@ module HexMaps {
         getNeighbor(direction: Direction): AxialCoord {
             var d = AxialCoord.neighbors[direction];
 
-            return new AxialCoord(this.q + d[0], this.r + d[1]);
+            return new AxialCoord(this.q + d[0], this.r + d[1])
         }
 
         toPixel(orientation: Orientation = Orientation.FlatTopped): Point {
@@ -222,7 +222,7 @@ module HexMaps {
             // flat topped
 
             if (this.leftEdgeOffsetLeftOne) {
-                var current = this.upperLeft.getNeighbor(Direction.UpZDownX);
+                var current = this.upperLeft.getNeighbor(4);
                 
                 for (var r = current.r; r < this.lowerLeft.r + 1; r++) {
                     action(new AxialCoord(current.q, r));
@@ -249,6 +249,47 @@ module HexMaps {
                 }
             }
         }
+    }
+
+    function getCoordAtPoint(worldPoint: Point, orientation: Orientation): CubeCoord {
+
+        //var point = new Point(worldPoint.X + HexWidth(orientation), worldPoint.Y + HexHeight(orientation));
+        var point = worldPoint;
+
+        var size = HexagonDefinition.SideLength;
+
+        var aq: number;
+        var ar: number;
+        if (orientation === Orientation.FlatTopped) {
+            aq = 2 / 3 * point.X / size;
+            ar = (-1 / 3 * point.X + HexMaps.SQRT3_3 * point.Y) / size;
+        } else {
+            aq = (HexMaps.SQRT3_3 * point.X - 1 / 3 * point.Y) / size;
+            ar = 2 / 3 * point.Y / size;
+        }
+
+        return hexRound(aq, -aq - ar, ar);
+    }
+
+
+    export function hexRound(x: number, y: number, z: number): CubeCoord {
+
+        var rx = Math.round(x);
+        var ry = Math.round(y);
+        var rz = Math.round(z);
+
+        var xDiff = Math.abs(rx - x);
+        var yDiff = Math.abs(ry - y);
+        var zDiff = Math.abs(rz - z);
+
+        if (xDiff > yDiff && xDiff > zDiff) {
+            rx = -ry - rz;
+        } else if (yDiff > zDiff) {
+            ry = -rx - rz;
+        } else {
+            rz = -rx - ry;
+        }
+        return new CubeCoord(rx, ry, rz);
     }
 
 
@@ -306,6 +347,22 @@ module HexMaps {
 
         constructor(public color: string, public name: string) {
 
+        }
+    }
+
+    export function getHexWidth(ori: Orientation = Orientation.FlatTopped): number {
+        if (ori === Orientation.FlatTopped) {
+            return HexagonDefinition.VertexToVertex;
+        } else {
+            return HexagonDefinition.EdgeToEdge;
+        }
+    }
+
+    export function getHexHeight(ori: Orientation = Orientation.FlatTopped): number {
+        if (ori === Orientation.FlatTopped) {
+            return HexagonDefinition.EdgeToEdge;
+        } else {
+            return HexagonDefinition.VertexToVertex;
         }
     }
 
@@ -545,61 +602,5 @@ module HexMaps {
             var r = Math.floor(-q / 2) + this.height;
             return new AxialCoord(q, r);
         }
-    }
-
-    export function getHexWidth(ori: Orientation = Orientation.FlatTopped): number {
-        if (ori === Orientation.FlatTopped) {
-            return HexagonDefinition.VertexToVertex;
-        } else {
-            return HexagonDefinition.EdgeToEdge;
-        }
-    }
-
-    export function getHexHeight(ori: Orientation = Orientation.FlatTopped): number {
-        if (ori === Orientation.FlatTopped) {
-            return HexagonDefinition.EdgeToEdge;
-        } else {
-            return HexagonDefinition.VertexToVertex;
-        }
-    }
-
-    export function getCoordAtPoint(worldPoint: Point, orientation: Orientation): CubeCoord {
-
-        //var point = new Point(worldPoint.X + HexWidth(orientation), worldPoint.Y + HexHeight(orientation));
-        var point = worldPoint;
-
-        var size = HexagonDefinition.SideLength;
-
-        var aq: number;
-        var ar: number;
-        if (orientation === Orientation.FlatTopped) {
-            aq = 2 / 3 * point.X / size;
-            ar = (-1 / 3 * point.X + HexMaps.SQRT3_3 * point.Y) / size;
-        } else {
-            aq = (HexMaps.SQRT3_3 * point.X - 1 / 3 * point.Y) / size;
-            ar = 2 / 3 * point.Y / size;
-        }
-
-        return hexRound(aq, -aq - ar, ar);
-    }
-
-    export function hexRound(x: number, y: number, z: number): CubeCoord {
-
-        var rx = Math.round(x);
-        var ry = Math.round(y);
-        var rz = Math.round(z);
-
-        var xDiff = Math.abs(rx - x);
-        var yDiff = Math.abs(ry - y);
-        var zDiff = Math.abs(rz - z);
-
-        if (xDiff > yDiff && xDiff > zDiff) {
-            rx = -ry - rz;
-        } else if (yDiff > zDiff) {
-            ry = -rx - rz;
-        } else {
-            rz = -rx - ry;
-        }
-        return new CubeCoord(rx, ry, rz);
     }
 }

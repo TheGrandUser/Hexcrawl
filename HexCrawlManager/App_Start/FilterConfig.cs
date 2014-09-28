@@ -3,9 +3,6 @@ using System.Web.Mvc;
 
 namespace HexCrawlManager
 {
-   /// <summary>
-   /// 
-   /// </summary>
    public class FilterConfig
    {
       public static void RegisterGlobalFilters(GlobalFilterCollection filters)
