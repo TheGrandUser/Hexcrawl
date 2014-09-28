@@ -3,37 +3,19 @@ using System.Collections.ObjectModel;
 
 namespace HexCrawlManager.Areas.HelpPage.ModelDescriptions
 {
-   /// <summary>
-   /// 
-   /// </summary>
-   public class ParameterDescription
-   {
-      /// <summary>
-      /// 
-      /// </summary>
-      public ParameterDescription()
-      {
-         Annotations = new Collection<ParameterAnnotation>();
-      }
+    public class ParameterDescription
+    {
+        public ParameterDescription()
+        {
+            Annotations = new Collection<ParameterAnnotation>();
+        }
 
-      /// <summary>
-      /// 
-      /// </summary>
-      public Collection<ParameterAnnotation> Annotations { get; private set; }
+        public Collection<ParameterAnnotation> Annotations { get; private set; }
 
-      /// <summary>
-      /// 
-      /// </summary>
-      public string Documentation { get; set; }
+        public string Documentation { get; set; }
 
-      /// <summary>
-      /// 
-      /// </summary>
-      public string Name { get; set; }
+        public string Name { get; set; }
 
-      /// <summary>
-      /// 
-      /// </summary>
-      public ModelDescription TypeDescription { get; set; }
-   }
+        public ModelDescription TypeDescription { get; set; }
+    }
 }

@@ -1,7 +1,7 @@
-﻿/// <reference path="../../scripts/rx.d.ts" />
-/// <reference path="../../scripts/rx.async.d.ts" />
-/// <reference path="../../scripts/rx.binding.d.ts" />
-/// <reference path="../../scripts/rx.time.d.ts" />
+﻿/// <reference path="../../scripts/typings/rx/rx.d.ts" />
+/// <reference path="../../scripts/typings/rx/rx.async.d.ts" />
+/// <reference path="../../scripts/typings/rx/rx.binding.d.ts" />
+/// <reference path="../../scripts/typings/rx/rx.time.d.ts" />
 var HexMaps;
 (function (HexMaps) {
     'use strict';
@@ -235,7 +235,7 @@ var HexMaps;
         HexRectangle.prototype.forEachCoord = function (action) {
             // flat topped
             if (this.leftEdgeOffsetLeftOne) {
-                var current = this.upperLeft.getNeighbor(4 /* UpZDownX */);
+                var current = this.upperLeft.getNeighbor(4);
 
                 for (var r = current.r; r < this.lowerLeft.r + 1; r++) {
                     action(new AxialCoord(current.q, r));
@@ -265,6 +265,45 @@ var HexMaps;
         return HexRectangle;
     })();
     HexMaps.HexRectangle = HexRectangle;
+
+    function getCoordAtPoint(worldPoint, orientation) {
+        //var point = new Point(worldPoint.X + HexWidth(orientation), worldPoint.Y + HexHeight(orientation));
+        var point = worldPoint;
+
+        var size = HexagonDefinition.SideLength;
+
+        var aq;
+        var ar;
+        if (orientation === 0 /* FlatTopped */) {
+            aq = 2 / 3 * point.X / size;
+            ar = (-1 / 3 * point.X + HexMaps.SQRT3_3 * point.Y) / size;
+        } else {
+            aq = (HexMaps.SQRT3_3 * point.X - 1 / 3 * point.Y) / size;
+            ar = 2 / 3 * point.Y / size;
+        }
+
+        return hexRound(aq, -aq - ar, ar);
+    }
+
+    function hexRound(x, y, z) {
+        var rx = Math.round(x);
+        var ry = Math.round(y);
+        var rz = Math.round(z);
+
+        var xDiff = Math.abs(rx - x);
+        var yDiff = Math.abs(ry - y);
+        var zDiff = Math.abs(rz - z);
+
+        if (xDiff > yDiff && xDiff > zDiff) {
+            rx = -ry - rz;
+        } else if (yDiff > zDiff) {
+            ry = -rx - rz;
+        } else {
+            rz = -rx - ry;
+        }
+        return new CubeCoord(rx, ry, rz);
+    }
+    HexMaps.hexRound = hexRound;
 
     var HexagonDefinition = (function () {
         function HexagonDefinition(color, name) {
@@ -321,6 +360,26 @@ var HexMaps;
         return HexagonDefinition;
     })();
     HexMaps.HexagonDefinition = HexagonDefinition;
+
+    function getHexWidth(ori) {
+        if (typeof ori === "undefined") { ori = 0 /* FlatTopped */; }
+        if (ori === 0 /* FlatTopped */) {
+            return HexagonDefinition.VertexToVertex;
+        } else {
+            return HexagonDefinition.EdgeToEdge;
+        }
+    }
+    HexMaps.getHexWidth = getHexWidth;
+
+    function getHexHeight(ori) {
+        if (typeof ori === "undefined") { ori = 0 /* FlatTopped */; }
+        if (ori === 0 /* FlatTopped */) {
+            return HexagonDefinition.EdgeToEdge;
+        } else {
+            return HexagonDefinition.VertexToVertex;
+        }
+    }
+    HexMaps.getHexHeight = getHexHeight;
 
     var HexTile = (function () {
         function HexTile(def, coord) {
@@ -533,65 +592,5 @@ var HexMaps;
         return HexTileMap;
     })();
     HexMaps.HexTileMap = HexTileMap;
-
-    function getHexWidth(ori) {
-        if (typeof ori === "undefined") { ori = 0 /* FlatTopped */; }
-        if (ori === 0 /* FlatTopped */) {
-            return HexagonDefinition.VertexToVertex;
-        } else {
-            return HexagonDefinition.EdgeToEdge;
-        }
-    }
-    HexMaps.getHexWidth = getHexWidth;
-
-    function getHexHeight(ori) {
-        if (typeof ori === "undefined") { ori = 0 /* FlatTopped */; }
-        if (ori === 0 /* FlatTopped */) {
-            return HexagonDefinition.EdgeToEdge;
-        } else {
-            return HexagonDefinition.VertexToVertex;
-        }
-    }
-    HexMaps.getHexHeight = getHexHeight;
-
-    function getCoordAtPoint(worldPoint, orientation) {
-        //var point = new Point(worldPoint.X + HexWidth(orientation), worldPoint.Y + HexHeight(orientation));
-        var point = worldPoint;
-
-        var size = HexagonDefinition.SideLength;
-
-        var aq;
-        var ar;
-        if (orientation === 0 /* FlatTopped */) {
-            aq = 2 / 3 * point.X / size;
-            ar = (-1 / 3 * point.X + HexMaps.SQRT3_3 * point.Y) / size;
-        } else {
-            aq = (HexMaps.SQRT3_3 * point.X - 1 / 3 * point.Y) / size;
-            ar = 2 / 3 * point.Y / size;
-        }
-
-        return hexRound(aq, -aq - ar, ar);
-    }
-    HexMaps.getCoordAtPoint = getCoordAtPoint;
-
-    function hexRound(x, y, z) {
-        var rx = Math.round(x);
-        var ry = Math.round(y);
-        var rz = Math.round(z);
-
-        var xDiff = Math.abs(rx - x);
-        var yDiff = Math.abs(ry - y);
-        var zDiff = Math.abs(rz - z);
-
-        if (xDiff > yDiff && xDiff > zDiff) {
-            rx = -ry - rz;
-        } else if (yDiff > zDiff) {
-            ry = -rx - rz;
-        } else {
-            rz = -rx - ry;
-        }
-        return new CubeCoord(rx, ry, rz);
-    }
-    HexMaps.hexRound = hexRound;
 })(HexMaps || (HexMaps = {}));
 //# sourceMappingURL=ModelTypes.js.map
