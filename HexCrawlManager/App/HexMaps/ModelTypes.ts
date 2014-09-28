@@ -1,7 +1,7 @@
-﻿/// <reference path="../../scripts/typings/rx/rx.d.ts" />
-/// <reference path="../../scripts/typings/rx/rx.async.d.ts" />
-/// <reference path="../../scripts/typings/rx/rx.binding.d.ts" />
-/// <reference path="../../scripts/typings/rx/rx.time.d.ts" />
+﻿/// <reference path="../../scripts/rx.d.ts" />
+/// <reference path="../../scripts/rx.async.d.ts" />
+/// <reference path="../../scripts/rx.binding.d.ts" />
+/// <reference path="../../scripts/rx.time.d.ts" />
 
 module HexMaps {
 

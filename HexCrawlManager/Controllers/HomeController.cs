@@ -10,6 +10,11 @@ namespace HexCrawlManager.Controllers
    {
       public ActionResult Index()
       {
+         if (this.User.Identity.IsAuthenticated)
+         {
+
+         }
+
          return View();
       }
 
