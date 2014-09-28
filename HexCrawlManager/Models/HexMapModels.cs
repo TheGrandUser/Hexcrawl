@@ -504,15 +504,13 @@ namespace HexCrawlManager.Models
 
    public class HexTileStrip
    {
-      HexTile[] tiles;
-
-      public int Offset { get; private set; }
-      public HexTile[] Tiles { get { return tiles; } }
+      public int Offset { get; set; }
+      public HexTile[] Tiles { get; set; }
 
       public HexTileStrip(int offset, int count)
       {
          this.Offset = offset;
-         this.tiles = new HexTile[count];
+         this.Tiles = new HexTile[count];
       }
    }
 
@@ -533,7 +531,6 @@ namespace HexCrawlManager.Models
 
    public class HexTileMap
    {
-      HexTileStrip[] hexes;
       //MapShape shape = MapShape.Rectangular;
 
       //int minR;
@@ -542,9 +539,9 @@ namespace HexCrawlManager.Models
       //int minQ;
       //int maxQ;
 
-      public int Width { get; private set; }
-      public int Height { get; private set; }
-      public HexTileStrip[] Hexes { get { return hexes; } }
+      public int Width { get; set; }
+      public int Height { get; set; }
+      public HexTileStrip[] Hexes { get; set; }
 
       public HexTileMap(int width, int height, HexagonDefinition fillHex)
       {
@@ -559,7 +556,7 @@ namespace HexCrawlManager.Models
          //this.minR = -this.Width / 2;
          //this.maxR = height;
 
-         this.hexes = new HexTileStrip[height];
+         this.Hexes = new HexTileStrip[height];
 
          for (var colIndex = 0; colIndex < this.Width; colIndex++)
          {
@@ -579,7 +576,7 @@ namespace HexCrawlManager.Models
                col.Tiles[j] = new HexTile(fillHex.Id, new AxialCoord(q, r));
             }
 
-            this.hexes[colIndex] = col;
+            this.Hexes[colIndex] = col;
          }
       }
    }
