@@ -556,15 +556,12 @@ namespace HexCrawlManager.Models
          //this.minR = -this.Width / 2;
          //this.maxR = height;
 
-         this.Hexes = new HexTileStrip[height];
+         this.Hexes = new HexTileStrip[this.Width];
 
          for (var colIndex = 0; colIndex < this.Width; colIndex++)
          {
-            int firstRow;
-            int numberOfTiles;
-
-            firstRow = -colIndex / 2;
-            numberOfTiles = this.Height;
+            var firstRow = -colIndex / 2;
+            var numberOfTiles = this.Height;
 
             var col = new HexTileStrip(firstRow, numberOfTiles);
 
