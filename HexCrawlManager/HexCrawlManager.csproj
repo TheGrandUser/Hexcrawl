@@ -229,11 +229,11 @@
     </Compile>
     <Compile Include="Hubs\HexMapHub.cs" />
     <Compile Include="Migrations\201408302200051_InitialCreate.cs" />
-    <Compile Include="Migrations\201408302200051_InitialCreate.Designer.cs">
+    <Compile Include="Migrations\201408302200051_InitialCreate.designer.cs">
       <DependentUpon>201408302200051_InitialCreate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\201409290010576_initialMigration.cs" />
-    <Compile Include="Migrations\201409290010576_initialMigration.Designer.cs">
+    <Compile Include="Migrations\201409290010576_initialMigration.designer.cs">
       <DependentUpon>201409290010576_initialMigration.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\201409290541161_hexMapObjects.cs" />
@@ -247,7 +247,6 @@
     <Compile Include="Models\IdentityModels.cs" />
     <Compile Include="Models\ManageViewModels.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Services\GameRepository.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -302,15 +301,20 @@
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
     <Content Include="Scripts\jquery-1.10.2.min.js" />
+    <Content Include="Scripts\jquery-2.1.1.min.map" />
     <None Include="Scripts\jquery.validate-vsdoc.js" />
+    <Content Include="Scripts\jquery-2.1.1.min.js" />
     <Content Include="Scripts\jquery.signalR-2.1.1.js" />
     <Content Include="Scripts\jquery.signalR-2.1.1.min.js" />
+    <Content Include="Scripts\jquery.signalR-2.1.2.min.js" />
     <Content Include="Scripts\jquery.validate.js" />
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.6.2.js" />
     <Content Include="Scripts\respond.js" />
+    <Content Include="Scripts\respond.matchmedia.addListener.js" />
+    <Content Include="Scripts\respond.matchmedia.addListener.min.js" />
     <Content Include="Scripts\respond.min.js" />
     <Content Include="Scripts\rx.aggregates.js" />
     <Content Include="Scripts\rx.aggregates.min.js" />
@@ -373,16 +377,17 @@
     <Content Include="Views\Manage\VerifyPhoneNumber.cshtml" />
     <Content Include="Views\Shared\Lockout.cshtml" />
     <Content Include="Views\Shared\_LoginPartial.cshtml" />
+    <Content Include="Views\Shared\_AngularLayout.cshtml" />
+    <Content Include="Views\Games\AllGames.cshtml" />
     <Content Include="Views\Games\Create.cshtml" />
     <Content Include="Views\Games\Delete.cshtml" />
-    <Content Include="Views\Games\Play.cshtml" />
     <Content Include="Views\Games\Edit.cshtml" />
     <Content Include="Views\Games\Index.cshtml" />
-    <Content Include="Views\Games\AllGames.cshtml" />
-    <Content Include="Views\Shared\_AngularLayout.cshtml" />
+    <Content Include="Views\Games\Play.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Services\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />

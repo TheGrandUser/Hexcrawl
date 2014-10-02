@@ -1,0 +1,25 @@
+﻿@model HexCrawlManager.Models.Game
+
+@{
+    ViewBag.Title = "Hexcrawl - " + this.Model.Name;
+    ViewBag.AppName = "hexCrawl";
+    Layout = "~/Views/Shared/_AngularLayout.cshtml";
+}
+<h2>@this.Model.Name</h2>
+
+
+<div class="row">
+    <div class="col-sm-1">
+        Menu here?
+    </div>
+    <div class="col-md-11" ng-view></div>
+</div>
+
+@{
+    this.ViewBag.Scripts = new List<string>()
+    {
+        "~/App/HexMaps/ModelTypes.js",
+        "~/App/HexMaps/HexMapModule.js",
+        "~/App/app.js"
+    };
+}

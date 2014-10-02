@@ -155,5 +155,9 @@ $RECYCLE.BIN/
 
 # Mac desktop service store files
 .DS_Store
-/HexCrawlManager/App_Data/XmlDocument.xml
-/HexCrawlManager
+/HexCrawlManager/Scripts/jquery-2.1.1.min.js
+/HexCrawlManager/Scripts/jquery-2.1.1.min.map
+/HexCrawlManager/Scripts/jquery.signalR-2.1.2.min.js
+/HexCrawlManager/Scripts/rx.backpressure.min.js
+HexCrawlManager/Scripts/angular-route.min.js.map
+HexCrawlManager/Scripts/jquery.validate.unobtrusive.min.js
