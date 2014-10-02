@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Web;
@@ -460,64 +461,24 @@ namespace HexCrawlManager.Models
       }
    }
 
-   public class HexTile// : ISerializable
+   public class Tile
    {
-      AxialCoord coord;
-      Point midPoint;
-
-      public HexTile(int definitionId, AxialCoord coord)
-      {
-         this.Definition = definitionId;
-         this.Coord = coord;
-      }
-
       public int Definition { get; set; }
-      public AxialCoord Coord
-      {
-         get { return coord; }
-         set
-         {
-            this.coord = value;
-            this.midPoint = this.coord != null ? this.coord.ToPixel() : null;
-         }
-      }
-
-      [JsonIgnore]
-      public Point MidPoint { get { return this.midPoint; } }
-
-      //public HexTile(SerializationInfo information, StreamingContext context)
-      //{
-      //   var coord = (AxialCoord)information.GetValue("Coord", typeof(AxialCoord));
-      //   var defName = information.GetString("Definition");
-      //   var definition = HexagonDefinition.Definitions[defName];
-
-      //   this.Coord = coord;
-      //   this.Definition = definition;
-      //}
-
-      //public void GetObjectData(SerializationInfo info, StreamingContext context)
-      //{
-      //   info.AddValue("Coord", this.coord);
-      //   info.AddValue("Definition", this.Definition.Name);
-      //}
    }
 
    public class HexTileStrip
    {
       public int Offset { get; set; }
-      public HexTile[] Tiles { get; set; }
+      public Tile[] Tiles { get; set; }
 
       public HexTileStrip(int offset, int count)
       {
          this.Offset = offset;
-         this.Tiles = new HexTile[count];
+         this.Tiles = new Tile[count];
       }
    }
 
-   /// <summary>
-   /// Has the map Id and Name
-   /// </summary>
-   public class HexMapId
+   public class HexMapInfo
    {
       /// <summary>
       /// The Id of the map
@@ -533,28 +494,28 @@ namespace HexCrawlManager.Models
    {
       //MapShape shape = MapShape.Rectangular;
 
-      //int minR;
-      //int maxR;
+      int minR;
+      int maxR;
 
-      //int minQ;
-      //int maxQ;
+      int minQ;
+      int maxQ;
 
       public int Width { get; set; }
       public int Height { get; set; }
       public HexTileStrip[] Hexes { get; set; }
 
-      public HexTileMap(int width, int height, HexagonDefinition fillHex)
+      public HexTileMap(int width, int height)
       {
          // Flat Topped
 
          this.Width = width;
          this.Height = height;
 
-         //this.minQ = 0;
-         //this.maxQ = width;
+         this.minQ = 0;
+         this.maxQ = width;
 
-         //this.minR = -this.Width / 2;
-         //this.maxR = height;
+         this.minR = -this.Width / 2;
+         this.maxR = height;
 
          this.Hexes = new HexTileStrip[this.Width];
 
@@ -565,23 +526,86 @@ namespace HexCrawlManager.Models
 
             var col = new HexTileStrip(firstRow, numberOfTiles);
 
-            var q = colIndex;
+            //var q = colIndex;
 
             for (var j = 0; j < numberOfTiles; j++)
             {
-               var r = j + firstRow;
-               col.Tiles[j] = new HexTile(fillHex.Id, new AxialCoord(q, r));
+               //var r = j + firstRow;
+               col.Tiles[j] = new Tile();
             }
 
             this.Hexes[colIndex] = col;
          }
       }
+
+      public void AddTiles(IEnumerable<HexTile> tiles)
+      {
+         foreach (var tile in tiles)
+         {
+            if (tile.Q < this.minQ || tile.Q >= this.maxQ)
+            {
+               throw new InvalidOperationException(string.Format("Tile {0}.Q is outside of the range of the map ({1} to {2}", tile.Id, this.minQ, this.maxQ));
+            }
+
+            var col = this.Hexes[tile.Q];
+
+            var row = tile.R - col.Offset;
+
+            if (row < 0 || row >= col.Tiles.Length)
+            {
+               throw new InvalidOperationException(string.Format("Tile {0}.R is outside of the range of the stripe ({1} to {2}", tile.Id, col.Offset, col.Tiles.Length + col.Offset));
+            }
+
+            //var hex = new HexTile(hexDef, coord);
+
+            col.Tiles[row] = new Tile() { Definition = tile.Definition };
+         }
+      }
    }
 
-
-
-   public class HexTileMapTransfer
+   // Database objects
+   public class HexTile
    {
+      public HexTile() { }
 
+      // db
+      public int Id { get; set; }
+
+      [Index]
+      public int HexMapId { get; set; }
+
+      [Index]
+      public int Q { get; set; }
+
+      [Index]
+      public int R { get; set; }
+
+      public virtual HexMap HexMap { get; set; }
+
+      // Json
+      public int Definition { get; set; }
+   }
+
+   /// <summary>
+   /// Has the map Id and Name
+   /// </summary>
+   public class HexMap
+   {
+      /// <summary>
+      /// The Id of the map
+      /// </summary>
+      public int Id { get; set; }
+      /// <summary>
+      /// The name of the map
+      /// </summary>
+      public string Name { get; set; }
+
+      public int Width { get; set; }
+      public int Height { get; set; }
+
+      public virtual ICollection<HexTile> Tiles { get; set; }
+
+      public int GameId { get; set; }
+      public virtual Game Game { get; set; }
    }
 }

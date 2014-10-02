@@ -1,5 +1,7 @@
 ﻿<!DOCTYPE html>
-<html ng-app="hexCrawl">
+
+<html>
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,6 +24,7 @@
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
                     <li>@Html.ActionLink("Home", "Index", "Home")</li>
+                    <li>@Html.ActionLink("Games", "Index", "Games")</li>
                     <li>@Html.ActionLink("About", "About", "Home")</li>
                     <li>@Html.ActionLink("Contact", "Contact", "Home")</li>
                     <li>@Html.ActionLink("API", "Index", "Help", new { area = "" }, null)</li>
@@ -40,9 +43,6 @@
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
-    @Scripts.Render("~/bundles/rx")
-    @*@Scripts.Render("~/bundles/angular")*@
-    @*@Scripts.Render("~/bundles/hexMapScripts")*@
 
     @RenderSection("scripts", required: false)
 </body>

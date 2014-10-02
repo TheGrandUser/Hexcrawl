@@ -353,6 +353,55 @@ var HexMaps;
             //var contentDiv = document.getElementById("hexStatus");
             //contentDiv.innerHTML = "Values for Hex: <br /><b>Vertex to Vertex:</b> " + vertexToVertex + "<br /><b>Edge to Edge: </b>" + edgeToEdge + "<br /><b>Side Length, z:</b> " + z + "<br /><b>x:</b> " + x + "<br /><b>y:</b> " + y;
         };
+
+        HexagonDefinition.prototype.draw = function (ctx, coord, point, highlight) {
+            if (typeof highlight === "undefined") { highlight = false; }
+            var hexPoints = HexagonDefinition.FlatTopPoints;
+
+            if (highlight) {
+                ctx.strokeStyle = "darkred";
+                ctx.lineWidth = 2;
+            } else {
+                ctx.strokeStyle = "grey";
+                ctx.lineWidth = 1;
+            }
+
+            ctx.fillStyle = this.color;
+
+            ctx.beginPath();
+            ctx.moveTo(hexPoints[0].X + point.X, hexPoints[0].Y + point.Y);
+
+            for (var i = 1; i < hexPoints.length; i++) {
+                var p = hexPoints[i];
+                ctx.lineTo(p.X + point.X, p.Y + point.Y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = "black";
+            ctx.font = "bolder 8pt Trebuchet MS,Tahoma,Verdana,Arial,sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = 'middle';
+            ctx.fillText("q" + coord.q + ", r" + coord.r, point.X, point.Y);
+        };
+
+        HexagonDefinition.prototype.drawSelection = function (ctx, point) {
+            var hexPoints = HexagonDefinition.FlatTopPoints;
+
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+            ctx.moveTo(hexPoints[0].X + point.X, hexPoints[0].Y + point.Y);
+
+            for (var i = 1; i < hexPoints.length; i++) {
+                var p = hexPoints[i];
+                ctx.lineTo(p.X + point.X, p.Y + point.Y);
+            }
+            ctx.closePath();
+            ctx.stroke();
+        };
         HexagonDefinition.VertexToVertex = 91.14378277661477;
         HexagonDefinition.EdgeToEdge = 91.14378277661477;
         HexagonDefinition.SideLength = 50.0;
@@ -382,82 +431,24 @@ var HexMaps;
     HexMaps.getHexHeight = getHexHeight;
 
     var HexTile = (function () {
-        function HexTile(def, coord) {
-            this.c = null;
-            this.midPoint = null;
+        //private c: AxialCoord = null;
+        //private midPoint: Point = null;
+        //get coord(): AxialCoord { return this.c; }
+        //set coord(value: AxialCoord) {
+        //    this.c = value;
+        //    if (this.c) {
+        //        this.midPoint = this.c.toPixel();
+        //    } else {
+        //        this.midPoint = null;
+        //    }
+        //}
+        function HexTile(def) {
             this.definition = def;
-            this.coord = coord;
-
-            if (this.coord) {
-                this.midPoint = this.coord.toPixel();
-            }
+            //this.coord = coord;
+            //if (this.coord) {
+            //    this.midPoint = this.coord.toPixel();
+            //}
         }
-        Object.defineProperty(HexTile.prototype, "coord", {
-            get: function () {
-                return this.c;
-            },
-            set: function (value) {
-                this.c = value;
-                if (this.c) {
-                    this.midPoint = this.c.toPixel();
-                } else {
-                    this.midPoint = null;
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
-
-        HexTile.prototype.draw = function (ctx, offset, highlight) {
-            if (typeof highlight === "undefined") { highlight = false; }
-            var point = this.midPoint.sub(offset);
-            var hexPoints = HexagonDefinition.FlatTopPoints;
-
-            if (highlight) {
-                ctx.strokeStyle = "darkred";
-                ctx.lineWidth = 2;
-            } else {
-                ctx.strokeStyle = "grey";
-                ctx.lineWidth = 1;
-            }
-
-            ctx.fillStyle = this.definition.color;
-
-            ctx.beginPath();
-            ctx.moveTo(hexPoints[0].X + point.X, hexPoints[0].Y + point.Y);
-
-            for (var i = 1; i < hexPoints.length; i++) {
-                var p = hexPoints[i];
-                ctx.lineTo(p.X + point.X, p.Y + point.Y);
-            }
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
-
-            ctx.fillStyle = "black";
-            ctx.font = "bolder 8pt Trebuchet MS,Tahoma,Verdana,Arial,sans-serif";
-            ctx.textAlign = "center";
-            ctx.textBaseline = 'middle';
-            ctx.fillText("q" + this.coord.q + ", r" + this.coord.r, point.X, point.Y);
-        };
-
-        HexTile.prototype.drawSelection = function (ctx, offset) {
-            var point = this.midPoint.sub(offset);
-            var hexPoints = HexagonDefinition.FlatTopPoints;
-
-            ctx.strokeStyle = "black";
-            ctx.lineWidth = 2;
-
-            ctx.beginPath();
-            ctx.moveTo(hexPoints[0].X + point.X, hexPoints[0].Y + point.Y);
-
-            for (var i = 1; i < hexPoints.length; i++) {
-                var p = hexPoints[i];
-                ctx.lineTo(p.X + point.X, p.Y + point.Y);
-            }
-            ctx.closePath();
-            ctx.stroke();
-        };
         return HexTile;
     })();
     HexMaps.HexTile = HexTile;
@@ -495,11 +486,9 @@ var HexMaps;
 
                 var col = new HexTileStrip(firstRow, new Array(numberOfTiles));
 
-                var q = colIndex;
-
                 for (var j = 0; j < numberOfTiles; j++) {
-                    var r = j + firstRow;
-                    col.tiles[j] = new HexTile(fillHex, new AxialCoord(q, r));
+                    //var r = j + firstRow;
+                    col.tiles[j] = new HexTile(fillHex);
                 }
 
                 this.hexes[colIndex] = col;
@@ -565,9 +554,8 @@ var HexMaps;
                 return;
             }
 
-            var hex = new HexTile(hexDef, coord);
-
-            col.tiles[row] = hex;
+            //var hex = new HexTile(hexDef, coord);
+            col.tiles[row].definition = hexDef;
             // Pointy Topped
             //if (coord.r < this.minR || coord.r >= this.maxR) {
             //    return;

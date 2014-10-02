@@ -29,7 +29,7 @@ module HexMaps {
 
     export interface IHexMapInteractionService {
 
-        selectedHex: HexTile;
+        selectedHexCoord: AxialCoord;
 
         doInteraction(point: Point);
 
@@ -70,6 +70,8 @@ module HexMaps {
             cameraService: ICameraService,
             hexTiles: IHexTileDefinitions,
             interactionService: IHexMapInteractionService) {
+
+            console.log("Creating the HexMapController");
 
             $scope.edgeToEdge = HexMaps.HexagonDefinition.EdgeToEdge;
             $scope.vertexToVertex = HexMaps.HexagonDefinition.VertexToVertex;
@@ -176,12 +178,19 @@ module HexMaps {
                     hexRect.forEachCoord(function (coord: AxialCoord) {
                         var tile = map.hexAt(coord);
                         if (tile) {
-                            tile.draw(ctx, cameraService.position);
+                            var point = coord.toPixel().sub(cameraService.position);
+                            tile.definition.draw(ctx, coord, point);
                         }
                     });
 
-                    if (hexMapInteractionService.selectedHex && hexRect.isInBounds(hexMapInteractionService.selectedHex.coord)) {
-                        hexMapInteractionService.selectedHex.drawSelection(ctx, cameraService.position);
+                    if (hexMapInteractionService.selectedHexCoord && hexRect.isInBounds(hexMapInteractionService.selectedHexCoord)) {
+
+                        var tile = map.hexAt(hexMapInteractionService.selectedHexCoord);
+                        if (tile) {
+                            var point = hexMapInteractionService.selectedHexCoord.toPixel().sub(cameraService.position);
+
+                            tile.definition.drawSelection(ctx, point);
+                        }
                     }
 
                     //var cameraOffset = cameraService.position.sub(cameraService.debugOffset);
@@ -268,7 +277,7 @@ module HexMaps {
 
     export class HexMapInteractionService implements IHexMapInteractionService {
 
-        selectedHex: HexTile = null;
+        selectedHexCoord: AxialCoord = null;
 
         isRenderingStarted: boolean = false;
 
@@ -300,8 +309,8 @@ module HexMaps {
                 console.log("A selection was made at " + point.X + ", " + point.Y);
                 console.log("      World location at " + worldPoint.X + ", " + worldPoint.Y);
 
-                if (this.selectedHex) {
-                    this.selectedHex = null;
+                if (this.selectedHexCoord) {
+                    this.selectedHexCoord = null;
                 }
 
                 console.log("selected coord: q " + coord.q + ", r " + coord.r);
@@ -309,7 +318,7 @@ module HexMaps {
                 var hex = this.hexMapService.hexMap.hexAt(coord);
 
                 if (hex) {
-                    this.selectedHex = hex;
+                    this.selectedHexCoord = coord;
                     this.clickStatus.innerHTML = "Selected hex: " + coord + "<br />Mouse x: " + worldPoint.X + "<br />Mouse y: " + worldPoint.Y +
                     "<br />Coord q " + coord.q + ", r " + coord.r;
                     console.log("selected hex " + coord);

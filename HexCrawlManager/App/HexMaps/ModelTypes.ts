@@ -348,6 +348,60 @@ module HexMaps {
         constructor(public color: string, public name: string) {
 
         }
+
+
+        draw(ctx: CanvasRenderingContext2D, coord: AxialCoord, point: Point, highlight: boolean = false): void {
+            var hexPoints = HexagonDefinition.FlatTopPoints;
+
+            if (highlight) {
+                ctx.strokeStyle = "darkred";
+                ctx.lineWidth = 2;
+            } else {
+                ctx.strokeStyle = "grey";
+                ctx.lineWidth = 1;
+            }
+
+            ctx.fillStyle = this.color;
+
+            ctx.beginPath();
+            ctx.moveTo(
+                hexPoints[0].X + point.X,
+                hexPoints[0].Y + point.Y);
+
+            for (var i = 1; i < hexPoints.length; i++) {
+                var p = hexPoints[i];
+                ctx.lineTo(p.X + point.X, p.Y + point.Y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+
+            ctx.fillStyle = "black";
+            ctx.font = "bolder 8pt Trebuchet MS,Tahoma,Verdana,Arial,sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = 'middle';
+            ctx.fillText("q" + coord.q + ", r" + coord.r, point.X, point.Y);
+        }
+
+        drawSelection(ctx: CanvasRenderingContext2D, point: Point): void {
+            var hexPoints = HexagonDefinition.FlatTopPoints;
+
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+            ctx.moveTo(
+                hexPoints[0].X + point.X,
+                hexPoints[0].Y + point.Y);
+
+            for (var i = 1; i < hexPoints.length; i++) {
+                var p = hexPoints[i];
+                ctx.lineTo(p.X + point.X, p.Y + point.Y);
+            }
+            ctx.closePath();
+            ctx.stroke();
+        }
     }
 
     export function getHexWidth(ori: Orientation = Orientation.FlatTopped): number {
@@ -368,82 +422,82 @@ module HexMaps {
 
     export class HexTile {
         definition: HexagonDefinition;
-        private c: AxialCoord = null;
-        private midPoint: Point = null;
+        //private c: AxialCoord = null;
+        //private midPoint: Point = null;
 
-        get coord(): AxialCoord { return this.c; }
-        set coord(value: AxialCoord) {
-            this.c = value;
-            if (this.c) {
-                this.midPoint = this.c.toPixel();
-            } else {
-                this.midPoint = null;
-            }
-        }
+        //get coord(): AxialCoord { return this.c; }
+        //set coord(value: AxialCoord) {
+        //    this.c = value;
+        //    if (this.c) {
+        //        this.midPoint = this.c.toPixel();
+        //    } else {
+        //        this.midPoint = null;
+        //    }
+        //}
 
-        constructor(def: HexagonDefinition, coord?: AxialCoord) {
+        constructor(def: HexagonDefinition) {
             this.definition = def;
-            this.coord = coord;
+            //this.coord = coord;
 
-            if (this.coord) {
-                this.midPoint = this.coord.toPixel();
-            }
+            //if (this.coord) {
+            //    this.midPoint = this.coord.toPixel();
+            //}
         }
 
-        draw(ctx: CanvasRenderingContext2D, offset: Point, highlight: boolean = false): void {
-            var point = this.midPoint.sub(offset);
-            var hexPoints = HexagonDefinition.FlatTopPoints;
+        //draw(ctx: CanvasRenderingContext2D, offset: Point, highlight: boolean = false): void {
+        //    var point = this.midPoint.sub(offset);
+        //    var hexPoints = HexagonDefinition.FlatTopPoints;
 
-            if (highlight) {
-                ctx.strokeStyle = "darkred";
-                ctx.lineWidth = 2;
-            } else {
-                ctx.strokeStyle = "grey";
-                ctx.lineWidth = 1;
-            }
+        //    if (highlight) {
+        //        ctx.strokeStyle = "darkred";
+        //        ctx.lineWidth = 2;
+        //    } else {
+        //        ctx.strokeStyle = "grey";
+        //        ctx.lineWidth = 1;
+        //    }
 
-            ctx.fillStyle = this.definition.color;
+        //    ctx.fillStyle = this.definition.color;
 
-            ctx.beginPath();
-            ctx.moveTo(
-                hexPoints[0].X + point.X,
-                hexPoints[0].Y + point.Y);
+        //    ctx.beginPath();
+        //    ctx.moveTo(
+        //        hexPoints[0].X + point.X,
+        //        hexPoints[0].Y + point.Y);
 
-            for (var i = 1; i < hexPoints.length; i++) {
-                var p = hexPoints[i];
-                ctx.lineTo(p.X + point.X, p.Y + point.Y);
-            }
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
+        //    for (var i = 1; i < hexPoints.length; i++) {
+        //        var p = hexPoints[i];
+        //        ctx.lineTo(p.X + point.X, p.Y + point.Y);
+        //    }
+        //    ctx.closePath();
+        //    ctx.fill();
+        //    ctx.stroke();
 
 
-            ctx.fillStyle = "black";
-            ctx.font = "bolder 8pt Trebuchet MS,Tahoma,Verdana,Arial,sans-serif";
-            ctx.textAlign = "center";
-            ctx.textBaseline = 'middle';
-            ctx.fillText("q" + this.coord.q + ", r" + this.coord.r, point.X, point.Y);
-        }
+        //    ctx.fillStyle = "black";
+        //    ctx.font = "bolder 8pt Trebuchet MS,Tahoma,Verdana,Arial,sans-serif";
+        //    ctx.textAlign = "center";
+        //    ctx.textBaseline = 'middle';
+        //    ctx.fillText("q" + this.coord.q + ", r" + this.coord.r, point.X, point.Y);
+        //}
 
-        drawSelection(ctx: CanvasRenderingContext2D, offset: Point): void {
-            var point = this.midPoint.sub(offset);
-            var hexPoints = HexagonDefinition.FlatTopPoints;
+        //drawSelection(ctx: CanvasRenderingContext2D, offset: Point): void {
+        //    var point = this.midPoint.sub(offset);
+        //    var hexPoints = HexagonDefinition.FlatTopPoints;
 
-            ctx.strokeStyle = "black";
-            ctx.lineWidth = 2;
+        //    ctx.strokeStyle = "black";
+        //    ctx.lineWidth = 2;
 
-            ctx.beginPath();
-            ctx.moveTo(
-                hexPoints[0].X + point.X,
-                hexPoints[0].Y + point.Y);
+        //    ctx.beginPath();
+        //    ctx.moveTo(
+        //        hexPoints[0].X + point.X,
+        //        hexPoints[0].Y + point.Y);
 
-            for (var i = 1; i < hexPoints.length; i++) {
-                var p = hexPoints[i];
-                ctx.lineTo(p.X + point.X, p.Y + point.Y);
-            }
-            ctx.closePath();
-            ctx.stroke();
-        }
+        //    for (var i = 1; i < hexPoints.length; i++) {
+        //        var p = hexPoints[i];
+        //        ctx.lineTo(p.X + point.X, p.Y + point.Y);
+        //    }
+        //    ctx.closePath();
+        //    ctx.stroke();
+        //}
     }
 
     export class HexTileStrip {
@@ -483,12 +537,12 @@ module HexMaps {
 
                 var col = new HexTileStrip(firstRow, new Array(numberOfTiles));
 
-                var q = colIndex;
+                //var q = colIndex;
 
                 for (var j = 0; j < numberOfTiles; j++) {
 
-                    var r = j + firstRow;
-                    col.tiles[j] = new HexTile(fillHex, new AxialCoord(q, r));
+                    //var r = j + firstRow;
+                    col.tiles[j] = new HexTile(fillHex);
                 }
 
                 this.hexes[colIndex] = col;
@@ -573,9 +627,9 @@ module HexMaps {
                 return;
             }
 
-            var hex = new HexTile(hexDef, coord);
+            //var hex = new HexTile(hexDef, coord);
 
-            col.tiles[row] = hex;
+            col.tiles[row].definition = hexDef;
 
             // Pointy Topped
             //if (coord.r < this.minR || coord.r >= this.maxR) {

@@ -8,11 +8,12 @@
 
     app.config([
         '$routeProvider', function ($routeProvider) {
-            $routeProvider.when('/', {
-                templateUrl: "App/Partials/HexMapView.html",
+            console.log("Configuring the hexCrawl module");
+            $routeProvider.when('/home', {
+                templateUrl: "/App/Partials/HexMapView.html",
                 controller: "hexMapCtrl"
             }).otherwise({
-                redirectTo: '/'
+                redirectTo: '/home'
             });
         }]);
 })(HexCrawl || (HexCrawl = {}));

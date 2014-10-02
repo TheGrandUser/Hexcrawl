@@ -44,7 +44,7 @@ namespace HexCrawlManager.Areas.HelpPage
             {
                 //{typeof(string), "sample string"},
                 //{typeof(IEnumerable<string>), new string[]{"sample 1", "sample 2"}}
-                {typeof(HexTileMap), new HexTileMap(10, 12, new HexagonDefinition(1, new Color(1,1,1), "DefaultWhite"))}
+                {typeof(HexTileMap), new HexTileMap(10, 12)}
             });
 
             // Extend the following to provide factories for types not handled automatically (those lacking parameterless
