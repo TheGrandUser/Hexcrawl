@@ -1,16 +1,16 @@
-﻿using System;
+﻿using HexCrawlManager.Models;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Net;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using HexCrawlManager.Models;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.EntityFramework;
-using System.Security.Claims;
 
 namespace HexCrawlManager.Controllers
 {
@@ -25,18 +25,18 @@ namespace HexCrawlManager.Controllers
          var userId = this.User.Identity.GetUserId();
 
          var manager = new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(this.db));
-         //var claims = await manager.GetClaimsAsync(userId);
-         //var gameMembershipClaims = claims.Where(claim => claim.Type == "GameMembership").Select(claim => int.Parse(claim.Value));
+         var claims = await manager.GetClaimsAsync(userId);
+         var gameMembershipClaims = claims.Where(claim => claim.Type == "GameMembership").Select(claim => int.Parse(claim.Value));
 
-         //IQueryable<Game> gamesQuery = from claim in gameMembershipClaims.AsQueryable()
-         //                              join game in db.Games on claim equals game.ID
-         //                              select game;
-
-
-         IQueryable<Game> gamesQuery = from membership in db.GameMemberships
-                                       where membership.ApplicationUserID == userId
-                                       join game in db.Games on membership.GameID equals game.ID
+         IQueryable<Game> gamesQuery = from claim in gameMembershipClaims.AsQueryable()
+                                       join game in db.Games on claim equals game.ID
                                        select game;
+
+
+         //IQueryable<Game> gamesQuery = from membership in db.GameMemberships
+         //                              where membership.ApplicationUserID == userId
+         //                              join game in db.Games on membership.GameID equals game.ID
+         //                              select game;
 
          var games = await gamesQuery.ToListAsync();
 

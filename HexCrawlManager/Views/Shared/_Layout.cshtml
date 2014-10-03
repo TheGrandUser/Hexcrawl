@@ -43,6 +43,14 @@
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
+    @if (this.ViewBag.Scripts != null)
+    {
+        foreach (var scriptUrl in this.ViewBag.Scripts)
+        {
+            Scripts.Render(scriptUrl);
+        }
+    }
+
 
     @RenderSection("scripts", required: false)
 </body>

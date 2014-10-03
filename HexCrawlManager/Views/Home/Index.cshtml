@@ -2,13 +2,15 @@
 @using HexCrawlManager.Models
 @{
     ViewBag.Title = "Home Page";
+    ViewBag.AppName = "homePageApp";
+    Layout = "~/Views/Shared/_AngularLayout.cshtml";
 }
 
 @*<span>The user info: @(User.Identity.IsAuthenticated ? User.Identity.GetUserId() : "Not logged in") }</span>*@
 <div class="row">
     @if (this.User.Identity.IsAuthenticated)
     {
-        <div class="col-md-2">
+        <div class="col-md-3">
             <span style="font-weight:bold">Member Games</span>
             <ul>
                 @foreach (Game game in this.ViewBag.Games)
@@ -17,6 +19,20 @@
                 }
             </ul>
             <span>Menu and stuff</span>
+            <span>You are in roles:</span>
+            <ul>
+                @foreach (string role in this.ViewBag.Roles)
+                {
+                    <li>@role</li>
+                }
+            </ul>
+            <span>You have claims:</span>
+            <ul>
+                @foreach (System.Security.Claims.Claim claim in this.ViewBag.Claims)
+                {
+                    <li>Type: @claim.Type, value @claim.Value</li>
+                }
+            </ul>
         </div>
     }
     else
@@ -26,12 +42,32 @@
             <span>Menu and stuff</span>
         </div>
     }
-    <div class="col-md-8">
+    <div class="col-md-6">
         <h2>Big site news and stuff!!!</h2>
         <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
         <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
     </div>
-    <div class="col-md-2">
+    <div class="col-md-3">
+        @if (this.User.IsInRole("Admin"))
+        {
+            <div ng-controller="adminBoxCtrl">
+                <span>{{lastOpMessage}}</span>
+                <button class="btn btn-warning" ng-click="syncMemberships()">Sync claims to memberships</button>
+            </div>
+        }
+        
         <h2>The highlights section!!</h2>
     </div>
 </div>
+
+@{
+    this.ViewBag.Scripts = new List<string>()
+    {
+        "~/App/homePageApp.js"
+    };
+
+    if (this.User.IsInRole("Admin"))
+    {
+        this.ViewBag.Scripts.Add("~/App/homePageAdmin.js");
+    }
+}

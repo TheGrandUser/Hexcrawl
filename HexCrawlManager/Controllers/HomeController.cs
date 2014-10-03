@@ -30,7 +30,12 @@ namespace HexCrawlManager.Controllers
                                      join game in db.Games on membership.GameID equals game.ID
                                      select game;
 
+            var adminRole = await db.Roles.FirstOrDefaultAsync(role => role.Name == "Admin");
+
             this.ViewBag.Games = await games.ToListAsync();
+
+            this.ViewBag.Claims = await manager.GetClaimsAsync(appUser.Id);
+            this.ViewBag.Roles = await manager.GetRolesAsync(appUser.Id);
          }
 
          return View();
