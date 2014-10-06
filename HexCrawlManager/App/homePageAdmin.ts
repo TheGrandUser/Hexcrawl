@@ -27,10 +27,17 @@ module HomePageApp {
         }
 
         SyncMemberships(): void {
-            var requestConfig: ng.IRequestShortcutConfig = null;
             var self = this;
-            
-            self.$http.post("/api/FixStuff", { userName: "$all" }, requestConfig)
+
+            //$.ajax({
+            //    type: "post",
+            //    url: "/api/FixStuff",
+            //    dataType: 'json',
+
+            //})
+            var who = { userName: "$all", };
+
+            self.$http.post("/api/FixStuff", who)
                 .then(function (result: any) {
                     self.$scope.lastOpMessage = "Successfully synced " + result.data + " memberships!";
                 }, function (error: any) {

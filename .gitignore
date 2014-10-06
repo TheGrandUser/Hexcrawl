@@ -161,3 +161,7 @@ $RECYCLE.BIN/
 /HexCrawlManager/Scripts/rx.backpressure.min.js
 /HexCrawlManager/Scripts/angular-route.min.js.map
 /HexCrawlManager/Scripts/jquery.validate.unobtrusive.min.js
+/HexCrawlManager/App/homePageAdmin.js
+/HexCrawlManager/App/homePageAdmin.js.map
+/HexCrawlManager/App/homePageApp.js
+/HexCrawlManager/App/homePageApp.js.map

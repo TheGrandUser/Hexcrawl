@@ -15,14 +15,21 @@ using System.Diagnostics;
 
 namespace HexCrawlManager.Controllers
 {
+   public class Fixit
+   {
+      public string UserName { get; set; }
+   }
+
    [Authorize(Roles = "Admin")]
    public class FixStuffController : ApiController
    {
       private ApplicationDbContext db = new ApplicationDbContext();
-
+      
       [HttpPost]
-      public async Task<int> SyncMembershipsAndClaims([FromBody]string userName)
+      public async Task<int> SyncMembershipsAndClaims([FromBody]Fixit fixit)
       {
+         var userName = fixit.UserName;
+
          var manager = new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(this.db));
 
          var query = db.GameMemberships.Include(mem => mem.Game).Include(mem => mem.ApplicationUser);
