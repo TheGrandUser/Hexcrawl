@@ -10,12 +10,16 @@ module HexCrawl {
     app.config(['$routeProvider', function ($routeProvider: ng.route.IRouteProvider) {
         console.log("Configuring the hexCrawl module");
         $routeProvider
-            .when('/home', {
+            .when('/', {
+                templateUrl: "/App/Partials/GamesListView.html",
+                controller: "gamesListCtrl"
+            })
+            .when('/game/:gameId', {
                 templateUrl: "/App/Partials/HexMapView.html",
                 controller: "hexMapCtrl"
             })
             .otherwise({
-                redirectTo: '/home'
+                redirectTo: '/'
             });
     }]);
 }

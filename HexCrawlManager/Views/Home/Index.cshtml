@@ -15,7 +15,7 @@
             <ul>
                 @foreach (Game game in this.ViewBag.Games)
                 {
-                    <li>@Html.ActionLink(game.Name, "Play/" + game.ID + "/", "Games")</li>
+                    <li>@Html.ActionLink(game.Name, "Index", "Games", null, null, "game/" + game.ID, null, null)</li>
                 }
             </ul>
             <span>Menu and stuff</span>

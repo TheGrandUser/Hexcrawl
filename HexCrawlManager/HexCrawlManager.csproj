@@ -75,6 +75,18 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.2.2\lib\net45\System.Net.Http.Formatting.dll</HintPath>
     </Reference>
+    <Reference Include="System.Reactive.Core">
+      <HintPath>..\packages\Rx-Core.2.2.5\lib\net45\System.Reactive.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reactive.Interfaces">
+      <HintPath>..\packages\Rx-Interfaces.2.2.5\lib\net45\System.Reactive.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reactive.Linq">
+      <HintPath>..\packages\Rx-Linq.2.2.5\lib\net45\System.Reactive.Linq.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reactive.PlatformServices">
+      <HintPath>..\packages\Rx-PlatformServices.2.2.5\lib\net45\System.Reactive.PlatformServices.dll</HintPath>
+    </Reference>
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
@@ -227,6 +239,7 @@
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\FixStuffController.cs" />
+    <Compile Include="Controllers\GamesApiController.cs" />
     <Compile Include="Controllers\GamesController.cs" />
     <Compile Include="Controllers\HexMapController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
@@ -261,6 +274,8 @@
     <Content Include="App\app.js" />
     <Content Include="App\HexMaps\HexMapModule.js" />
     <Content Include="App\HexMaps\ModelTypes.js" />
+    <Content Include="App\Partials\GamesListView.html" />
+    <Content Include="App\Partials\GameView.html" />
     <Content Include="App\Partials\HexMapView.html" />
     <Content Include="Areas\HelpPage\HelpPage.css" />
     <Content Include="Content\bootstrap-theme.css" />
@@ -406,10 +421,13 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="App\app.ts" />
+    <TypeScriptCompile Include="App\HexMaps\Controllers.ts" />
     <TypeScriptCompile Include="App\HexMaps\HexMapModule.ts" />
     <TypeScriptCompile Include="App\HexMaps\ModelTypes.ts" />
+    <TypeScriptCompile Include="App\HexMaps\Services.ts" />
     <TypeScriptCompile Include="App\homePageAdmin.ts" />
     <TypeScriptCompile Include="App\homePageApp.ts" />
+    <TypeScriptCompile Include="App\signalrService.ts" />
     <TypeScriptCompile Include="Scripts\rx-lite.d.ts" />
     <TypeScriptCompile Include="Scripts\rx.aggregates.d.ts" />
     <TypeScriptCompile Include="Scripts\rx.async-lite.d.ts" />

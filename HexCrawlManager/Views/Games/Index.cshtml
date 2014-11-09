@@ -1,10 +1,30 @@
-﻿@model IEnumerable<HexCrawlManager.Models.Game>
+﻿@{
+    ViewBag.Title = "Hexcrawl";
+    ViewBag.AppName = "hexCrawl";
+    Layout = "~/Views/Shared/_AngularLayout.cshtml";
+}
+<h2>{{heading}}</h2>
+
+
+<div class="row">
+    <div class="col-sm-1">
+        Menu here?
+    </div>
+    <div class="col-md-11" ng-view></div>
+</div>
 
 @{
-    ViewBag.Title = "Index";
+    this.ViewBag.Scripts = new List<string>()
+    {
+        "~/App/HexMaps/ModelTypes.js",
+        "~/App/HexMaps/Services.js",
+        "~/App/HexMaps/Controllers.js",
+        "~/App/HexMaps/HexMapModule.js",
+        "~/App/app.js"
+    };
 }
 
-<h2>Index</h2>
+@*<h2>Games</h2>
 
 <p>
     @Html.ActionLink("Create New", "Create")
@@ -36,4 +56,4 @@
     </tr>
 }
 
-</table>
+</table>*@

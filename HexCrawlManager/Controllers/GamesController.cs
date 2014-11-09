@@ -24,15 +24,6 @@ namespace HexCrawlManager.Controllers
       {
          var userId = this.User.Identity.GetUserId();
 
-         var manager = new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(this.db));
-         //var claims = await manager.GetClaimsAsync(userId);
-         //var gameMembershipClaims = claims.Where(claim => claim.Type == "GameMembership").Select(claim => int.Parse(claim.Value)).ToList();
-         
-         //IQueryable<Game> gamesQuery = from claim in gameMembershipClaims.AsQueryable()
-         //                              join game in db.Games on claim equals game.ID
-         //                              select game;
-
-
          IQueryable<Game> gamesQuery = from membership in db.GameMemberships
                                        where membership.ApplicationUserID == userId
                                        join game in db.Games on membership.GameID equals game.ID
@@ -43,7 +34,7 @@ namespace HexCrawlManager.Controllers
          return View(games);
       }
 
-      // GET: Games\AllGames
+      // GET: Games/AllGames
       public async Task<ActionResult> AllGames()
       {
          return View(await db.Games.ToListAsync());
@@ -85,7 +76,6 @@ namespace HexCrawlManager.Controllers
             var appUser = await manager.FindByIdAsync(this.User.Identity.GetUserId());
 
             db.Games.Add(game);
-            await db.SaveChangesAsync();
 
             await manager.AddClaimAsync(appUser.Id, new Claim("GameMembership", game.ID.ToString()));
             await manager.AddClaimAsync(appUser.Id, new Claim("GameOwnership", game.ID.ToString()));

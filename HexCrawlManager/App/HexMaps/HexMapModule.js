@@ -8,8 +8,15 @@ var HexMaps;
 (function (HexMaps) {
     'use strict';
 
+    var Game = (function () {
+        function Game() {
+        }
+        return Game;
+    })();
+    HexMaps.Game = Game;
+
     var HexMapController = (function () {
-        function HexMapController($scope, hexMapService, cameraService, hexTiles, interactionService) {
+        function HexMapController($scope, $http, $routeParams, hexMapService, cameraService, hexTiles, interactionService) {
             this.$scope = $scope;
             console.log("Creating the HexMapController");
 
@@ -31,11 +38,109 @@ var HexMaps;
                 interactionService.isSelecting = false;
                 interactionService.paintingTile = tile;
             };
+
+            $http.get("/api/GamesApi/Game/" + $routeParams.gameId).then(function (result) {
+                $scope.game = result.data;
+            }, function (error) {
+                console.log("error getting game info" + error.data);
+            });
         }
-        HexMapController.$inject = ['$scope', 'hexMapService', 'cameraService', 'hexTileDefinitions', 'hexMapInteractionService'];
+        HexMapController.$inject = ['$scope', '$http', '$routeParams', 'hexMapService', 'cameraService', 'hexTileDefinitions', 'hexMapInteractionService'];
         return HexMapController;
     })();
     HexMaps.HexMapController = HexMapController;
+
+    var GamesListController = (function () {
+        function GamesListController($scope, $http, $location) {
+            this.$scope = $scope;
+            this.$http = $http;
+            this.$location = $location;
+            var self = this;
+
+            $scope.createNew = function () {
+                return self.createNew();
+            };
+            $scope.playGame = function (id) {
+                return self.playGame(id);
+            };
+            $scope.editGame = function (id) {
+                return self.editGame(id);
+            };
+            $scope.deleteGame = function (id) {
+                return self.deleteGame(id);
+            };
+            $scope.cancelNewGame = function () {
+                return self.cancelNewGame();
+            };
+            $scope.saveNewGame = function () {
+                return self.saveNewGame();
+            };
+
+            $scope.games = [];
+            $scope.newGame = null;
+            $scope.visibilities = [
+                "Public",
+                "Private",
+                "Friends",
+                "Unlisted"
+            ];
+
+            var self = this;
+
+            this.$http.get("/api/GamesApi/MemberGames").then(function (result) {
+                self.$scope.games = result.data;
+            }, function (error) {
+                console.log("error getting game list" + error.data);
+            });
+        }
+        GamesListController.prototype.createNew = function () {
+            this.$scope.newGame = new Game();
+        };
+
+        GamesListController.prototype.playGame = function (gameId) {
+            this.$location.url("game/" + gameId);
+        };
+
+        GamesListController.prototype.editGame = function (gameId) {
+        };
+
+        GamesListController.prototype.deleteGame = function (gameId) {
+            var game = this.$scope.games.filter(function (g) {
+                return g.GameId === gameId;
+            })[0];
+            var self = this;
+
+            if (confirm("Do you really want to delete " + game.Name + "?")) {
+                this.$http.get("/api/GamesApi/Delete").then(function (result) {
+                    var index = self.$scope.games.indexOf(game);
+                    self.$scope.games.splice(index);
+                }, function (error) {
+                    console.log("could not delete game: " + error.data);
+                });
+            }
+        };
+
+        GamesListController.prototype.cancelNewGame = function () {
+            this.$scope.newGame = null;
+        };
+
+        GamesListController.prototype.saveNewGame = function () {
+            var _this = this;
+            console.log("created a new game!", this.$scope.newGame);
+
+            this.$http.post("/api/GamesApi/Create", { Name: this.$scope.newGame.Name, Visibility: this.$scope.newGame.Visibility }).then(function (result) {
+                _this.$scope.games.push(result.data);
+            }, function (errorResult) {
+                console.log("Could not creat game, error from server", errorResult.data);
+            });
+
+            this.$scope.newGame = null;
+        };
+
+        GamesListController.$inject = ['$scope', '$http', '$location'];
+        return GamesListController;
+    })();
+    HexMaps.GamesListController = GamesListController;
 
     function HexMapInteractDirective(hexMapInteractionService, cameraService) {
         console.log("Creating a selectHexMap directive!");
@@ -122,7 +227,6 @@ var HexMaps;
                 cameraService.height = height;
 
                 hexMapInteractionService.renderMap = function (map) {
-                    console.log("drawing hexes");
                     ctx.clearRect(0, 0, width, height);
 
                     var worldRect = new HexMaps.Rectangle(cameraService.position.X, cameraService.position.Y, cameraService.width, cameraService.height);
@@ -330,5 +434,6 @@ var HexMaps;
 
 console.log("Creating the hexMap module");
 var hexMapModule = angular.module("hexMap", []).service("cameraService", HexMaps.CameraService).service("hexMapInteractionService", HexMaps.HexMapInteractionService).service("hexTileDefinitions", HexMaps.HexTileDefinitions).service("hexMapService", HexMaps.HexMapService).directive("hxDraw", HexMaps.HexMapDrawDirective).directive("hxInteract", HexMaps.HexMapInteractDirective);
-hexMapModule.controller("hexMapCtrl", HexMaps.HexMapController);
+
+hexMapModule.controller("gamesListCtrl", HexMaps.GamesListController).controller("hexMapCtrl", HexMaps.HexMapController);
 //# sourceMappingURL=HexMapModule.js.map

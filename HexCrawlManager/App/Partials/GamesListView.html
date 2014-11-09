@@ -1,0 +1,32 @@
+﻿<div>
+    <h2>Games</h2>
+
+    <p>
+        <a ng-click="createNew()" ng-hide="newGame !== null">Create new game</a>
+        <div ng-show="newGame !== null">
+            <form>
+                Name: <input type="text" ng-model="newGame.Name" ng-required="" /><br />
+                <!--Description: <input type="text" ng-model="newGame.description" /><br />-->
+                Visibility: <select type="radio" ng-model="newGame.Visibility" ng-options="vis for vis in visibilities" ng-required=""></select><br />
+                <button ng-click="cancelNewGame()">Cancel</button>
+                <button ng-click="saveNewGame()">Create</button>
+            </form>
+        </div>
+    </p>
+    <table class="table">
+        <tr>
+            <th>Name</th>
+            <th>Visibility</th>
+            <th></th>
+        </tr>
+
+        <tr ng-repeat="game in games">
+            <td><a ng-click="playGame(game.GameId)">{{game.Name}}</a></td>
+            <td>{{game.Visibility}}</td>
+            <td>
+                <a ng-click="editGame(game.GameId)">Edit</a>
+                <a ng-click="deleteGame(game.GameId)">Delete</a>
+            </td>
+        </tr>
+    </table>
+</div>

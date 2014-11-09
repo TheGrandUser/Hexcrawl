@@ -22,7 +22,7 @@ module HomePageApp {
             this.$scope.lastOpMessage = "Welcome";
 
             if (this.$http === null) {
-                this.$scope.lastOpMessage = "Error getting hte http service!!!";
+                this.$scope.lastOpMessage = "Error getting the http service!!!";
             }
         }
 

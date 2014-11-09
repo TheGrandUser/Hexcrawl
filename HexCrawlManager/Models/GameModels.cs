@@ -6,6 +6,8 @@ using System.Data.Common;
 using System.Linq;
 using System.Web;
 using System.Runtime.Serialization;
+using System.Xml.Serialization;
+using Newtonsoft.Json;
 
 namespace HexCrawlManager.Models
 {
@@ -15,7 +17,11 @@ namespace HexCrawlManager.Models
       public string Name { get; set; }
       public GameVisibility Visibility { get; set; }
 
+      [JsonIgnore]
+      [XmlIgnore]
       public virtual ICollection<GameMembership> Memberships { get; set; }
+      [JsonIgnore]
+      [XmlIgnore]
       public virtual ICollection<HexMap> HexMaps { get; set; }
    }
 
@@ -33,9 +39,9 @@ namespace HexCrawlManager.Models
 
    public enum GameVisibility
    {
+      Public,
       Private,
       Friends,
       Unlisted,
-      Public,
    }
 }
